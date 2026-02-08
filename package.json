@@ -1,7 +1,7 @@
 {
   "name": "wassitdz-game-store",
   "version": "1.0.0",
-  "description": "Professional eFootball Account Store in Algeria",
+  "description": "Professional eFootball Account Store",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -15,5 +15,8 @@
     "mongoose": "^8.0.0",
     "cloudinary": "^2.0.0",
     "multer-storage-cloudinary": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
