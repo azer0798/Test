@@ -1,7 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 const session = require('express-session');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
@@ -25,10 +24,7 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
-    params: {
-        folder: 'wassitdz_uploads',
-        resource_type: 'auto' // يقبل أي نوع ملفات وصور
-    }
+    params: { folder: 'wassitdz_uploads', resource_type: 'auto' }
 });
 const upload = multer({ storage: storage });
 
@@ -49,25 +45,17 @@ app.use(session({ secret: process.env.SESSION_SECRET || 'wassit_secure', resave:
 app.set('view engine', 'ejs');
 app.set('views', __dirname);
 
-const keepAlive = () => {
-    const url = process.env.RENDER_EXTERNAL_HOSTNAME ? `https://${process.env.RENDER_EXTERNAL_HOSTNAME}` : null;
-    if (url) {
-        setInterval(() => {
-            axios.get(url).then(() => console.log('Ping OK')).catch(e => console.log('Ping Fail'));
-        }, 600000);
-    }
-};
+// تنظيف الروابط من الحروف المخفية تلقائياً
+const cleanText = (text) => typeof text === 'string' ? text.replace(/[^\x20-\x7E]/g, '').trim() : text;
 
 app.get('/', async (req, res) => {
-    try {
-        const accounts = await Account.find();
-        const faqs = await FAQ.find();
-        let settings = await Settings.findOne() || await Settings.create({
-            supportLink: "#", mediationLink: "#", sellAccountLink: "#", 
-            buyNowLink: "#", announcement: "مرحباً بكم في WassitDZ", themeColor: "#2563eb", logoUrl: ""
-        });
-        res.render('index', { accounts, settings, faqs });
-    } catch (err) { res.status(500).send("Database Error"); }
+    const accounts = await Account.find();
+    const faqs = await FAQ.find();
+    let settings = await Settings.findOne() || await Settings.create({
+        supportLink: "#", mediationLink: "#", sellAccountLink: "#", 
+        buyNowLink: "#", announcement: "مرحباً بكم", themeColor: "#2563eb", logoUrl: ""
+    });
+    res.render('index', { accounts, settings, faqs });
 });
 
 app.get('/admin-panel', async (req, res) => {
@@ -78,6 +66,14 @@ app.get('/admin-panel', async (req, res) => {
     res.render('admin', { accounts, settings, faqs });
 });
 
+app.post('/update-settings', async (req, res) => {
+    if (!req.session.isAdmin) return res.status(403).send("Forbidden");
+    let data = { ...req.body };
+    for (let key in data) data[key] = cleanText(data[key]); // تنظيف الروابط هنا
+    await Settings.findOneAndUpdate({}, data, { upsert: true });
+    res.redirect('/admin-panel');
+});
+
 app.post('/add-account', upload.array('imageFiles', 5), async (req, res) => {
     if (!req.session.isAdmin) return res.status(403).send("Forbidden");
     const imagePaths = req.files.map(file => file.path);
@@ -85,26 +81,17 @@ app.post('/add-account', upload.array('imageFiles', 5), async (req, res) => {
     res.redirect('/admin-panel');
 });
 
-app.post('/update-settings', async (req, res) => {
-    if (!req.session.isAdmin) return res.status(403).send("Forbidden");
-    await Settings.findOneAndUpdate({}, req.body, { upsert: true });
-    res.redirect('/admin-panel');
-});
-
 app.post('/add-faq', async (req, res) => {
-    if (!req.session.isAdmin) return res.status(403).send("Forbidden");
     await FAQ.create(req.body);
     res.redirect('/admin-panel');
 });
 
 app.get('/delete-faq/:id', async (req, res) => {
-    if (!req.session.isAdmin) return res.status(403).send("Forbidden");
     await FAQ.findByIdAndDelete(req.params.id);
     res.redirect('/admin-panel');
 });
 
 app.get('/delete/:id', async (req, res) => {
-    if (!req.session.isAdmin) return res.status(403).send("Forbidden");
     await Account.findOneAndDelete({ id: req.params.id });
     res.redirect('/admin-panel');
 });
@@ -118,4 +105,4 @@ app.post('/login', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => { console.log(`🚀 Server on ${PORT}`); keepAlive(); });
+app.listen(PORT, () => { console.log(`🚀 Server on ${PORT}`); });
