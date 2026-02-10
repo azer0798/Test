@@ -3,123 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WassitDZ Game | متجر الحسابات الموثوق</title>
+    <title>WassitDZ Game | متجر الحسابات</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { 
             --primary: <%= settings.themeColor %>; 
-            --dark-blue: #0f172a;
-            --light-bg: #f8fafc;
-            --success-green: #10b981;
+            --bg-body: #f4f6f8;
+            --text-main: #2d3436;
         }
         
-        body { background: var(--light-bg); font-family: 'Segoe UI', sans-serif; padding-top: 45px; color: #334155; }
+        body { background: var(--bg-body); font-family: 'Segoe UI', Tahoma, sans-serif; color: var(--text-main); padding-top: 40px; }
         
-        /* شريط الإعلان */
-        .announcement-bar { 
-            background: var(--dark-blue); color: #fff; height: 45px; line-height: 45px; 
-            position: fixed; top: 0; width: 100%; z-index: 2000; font-size: 0.9rem;
+        /* شريط التنبيه العلوي */
+        .top-notice { 
+            background: #000; color: #fff; height: 40px; line-height: 40px; 
+            position: fixed; top: 0; width: 100%; z-index: 2000; font-size: 13px; font-weight: bold;
         }
 
-        /* الهيدر واللوجو الاحترافي */
-        .navbar { 
-            background: #fff; border-bottom: 4px solid var(--primary); 
-            padding: 40px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        /* الهيدر - نمط التوصيل ستار */
+        .header-main { 
+            background: #fff; padding: 25px 0; border-bottom: 1px solid #eee; text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
-        .logo-wrapper {
-            display: inline-block; position: relative; padding: 15px;
-            background: #fff; border-radius: 20px; transition: all 0.4s ease;
-        }
-        .logo-wrapper img { max-height: 110px; width: auto; object-fit: contain; }
-        .logo-wrapper:hover { transform: translateY(-5px); }
+        .header-main img { max-height: 85px; width: auto; transition: 0.3s; }
 
-        /* أزرار التنقل السريع */
-        .quick-links .btn {
-            border-radius: 12px; padding: 10px 20px; font-weight: 600;
-            transition: 0.3s; border-width: 2px; margin: 5px;
+        /* الأزرار العلوية */
+        .nav-links { background: #fff; padding: 10px 0; border-bottom: 1px solid #eee; margin-bottom: 25px; }
+        .nav-links .btn { 
+            border: none; font-weight: bold; font-size: 14px; color: #555; padding: 8px 15px; 
+            border-radius: 8px; transition: 0.3s;
         }
-        .quick-links .btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .nav-links .btn:hover { background: #f8f9fa; color: var(--primary); }
 
-        /* بطاقة الحساب المطورة */
-        .account-card { 
-            background: #fff; border-radius: 22px; overflow: hidden; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03); transition: all 0.3s ease;
-            border: 1px solid #eef2f6; height: 100%; position: relative;
+        /* صندوق البحث والفلترة */
+        .search-container { max-width: 800px; margin: 0 auto 30px; }
+        .filter-input { 
+            border: 2px solid #eee; border-radius: 12px; padding: 12px 20px; 
+            font-size: 15px; background: #fff; transition: 0.3s;
         }
-        .account-card:hover { 
-            transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
-            border-color: var(--primary);
+        .filter-input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+
+        /* بطاقة المنتج - النمط المسطح الاحترافي */
+        .product-card { 
+            background: #fff; border-radius: 15px; border: 1px solid #edf2f7; 
+            height: 100%; transition: 0.3s; position: relative; overflow: hidden;
         }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
         
-        .img-container { height: 200px; position: relative; overflow: hidden; }
-        .img-container img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-        .account-card:hover .img-container img { transform: scale(1.08); }
+        .product-img-box { position: relative; width: 100%; height: 180px; background: #f9f9f9; }
+        .product-img-box img { width: 100%; height: 100%; object-fit: cover; }
 
-        .badge-type {
-            position: absolute; top: 12px; right: 12px; z-index: 10;
-            padding: 5px 12px; border-radius: 10px; font-size: 0.7rem;
-            font-weight: 800; background: rgba(255,255,255,0.95); color: var(--dark-blue);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #eee;
+        /* شارة نوع الربط */
+        .link-badge {
+            position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9);
+            padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800;
+            color: #333; border: 1px solid #eee;
         }
 
-        .price-dz { font-size: 1.5rem; font-weight: 900; color: var(--success-green); }
-        .btn-buy { 
-            background: var(--dark-blue); color: #fff; width: 100%; 
-            border-radius: 14px; padding: 12px; font-weight: 800; border: none;
-            transition: 0.3s;
-        }
-        .btn-buy:hover { background: var(--primary); }
+        .product-info { padding: 15px; text-align: center; }
+        .product-id { font-size: 12px; color: var(--primary); font-weight: bold; margin-bottom: 5px; display: block; }
+        .product-title { font-size: 15px; font-weight: 700; height: 40px; overflow: hidden; margin-bottom: 10px; }
+        .product-price { font-size: 18px; font-weight: 800; color: #2ecc71; margin-bottom: 15px; }
 
-        /* شريط الثقة */
-        .trust-section {
-            background: #fff; border-radius: 20px; padding: 20px;
-            margin: 30px 0; display: flex; justify-content: space-around;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.02);
+        .btn-order-now { 
+            background: #000; color: #fff; width: 100%; border: none; padding: 10px;
+            border-radius: 10px; font-weight: bold; font-size: 14px; transition: 0.3s;
         }
-        .trust-item { text-align: center; }
-        .trust-item i { color: var(--primary); font-size: 1.4rem; display: block; margin-bottom: 5px; }
-        .trust-item span { font-weight: 700; font-size: 0.85rem; }
+        .btn-order-now:hover { background: var(--primary); }
 
-        /* الفلترة */
-        .filter-box {
-            background: #fff; padding: 20px; border-radius: 20px;
-            margin-bottom: 30px; border: 1px solid #f1f5f9;
-        }
+        /* الأسئلة الشائعة - نمط نظيف */
+        .faq-section { margin-top: 60px; }
+        .faq-title { font-weight: 800; margin-bottom: 30px; position: relative; display: inline-block; }
+        .faq-title::after { content: ''; width: 50%; height: 3px; background: var(--primary); position: absolute; bottom: -8px; right: 25%; }
+        
+        .accordion-item { border: 1px solid #eee !important; border-radius: 10px !important; margin-bottom: 10px; overflow: hidden; }
+        .accordion-button { font-weight: 700; font-size: 15px; }
+        .accordion-button:not(.collapsed) { background-color: #f8f9fa; color: var(--primary); }
 
-        /* الأسئلة */
-        .accordion-item { border: none !important; margin-bottom: 12px; border-radius: 15px !important; box-shadow: 0 3px 10px rgba(0,0,0,0.02); }
-        .accordion-button { font-weight: 700; border-radius: 15px !important; }
-        .accordion-button:not(.collapsed) { background: #fff; color: var(--primary); }
+        footer { background: #fff; padding: 30px 0; border-top: 1px solid #eee; margin-top: 60px; font-size: 13px; color: #888; }
     </style>
 </head>
 <body>
 
-    <div class="announcement-bar"><marquee direction="right">⚡ <%= settings.announcement %> ⚡</marquee></div>
+    <div class="top-notice"><marquee direction="right"><%= settings.announcement %></marquee></div>
 
-    <nav class="navbar text-center">
+    <header class="header-main">
         <div class="container">
-            <div class="logo-wrapper">
-                <img src="<%= settings.logoUrl %>" alt="Logo">
-            </div>
+            <a href="/"><img src="<%= settings.logoUrl %>" alt="Logo"></a>
         </div>
-    </nav>
+    </header>
 
-    <div class="container mt-4 quick-links text-center">
-        <a href="<%= settings.mediationLink %>" class="btn btn-outline-primary px-4">الوساطة</a>
-        <a href="<%= settings.sellAccountLink %>" class="btn btn-outline-success px-4">بيع حسابك</a>
-        <a href="<%= settings.supportLink %>" class="btn btn-outline-secondary px-4">الدعم</a>
+    <div class="nav-links">
+        <div class="container d-flex justify-content-center flex-wrap">
+            <a href="<%= settings.mediationLink %>" class="btn"><i class="fas fa-shield-alt"></i> الوساطة</a>
+            <a href="<%= settings.sellAccountLink %>" class="btn"><i class="fas fa-plus"></i> بيع حسابك</a>
+            <a href="<%= settings.supportLink %>" class="btn"><i class="fas fa-headset"></i> الدعم الفني</a>
+        </div>
     </div>
 
-    <div class="container mt-4">
-        <div class="filter-box shadow-sm">
+    <div class="container">
+        <div class="search-container">
             <div class="row g-2">
-                <div class="col-8">
-                    <input type="number" id="idSearch" class="form-control form-control-lg fs-6" placeholder="🔍 ابحث برقم الحساب #ID...">
+                <div class="col-md-8 col-7">
+                    <input type="number" id="idSearch" class="filter-input w-100" placeholder="البحث برقم الـ ID...">
                 </div>
-                <div class="col-4">
-                    <select id="filterType" class="form-select form-select-lg fs-6 fw-bold">
-                        <option value="all">الكل</option>
+                <div class="col-md-4 col-5">
+                    <select id="filterType" class="filter-input w-100 fw-bold">
+                        <option value="all">كل الحسابات</option>
                         <option value="Id Konami">Id Konami</option>
                         <option value="Google Play">Google Play</option>
                     </select>
@@ -127,54 +118,41 @@
             </div>
         </div>
 
-        <div class="trust-section">
-            <div class="trust-item"><i class="fas fa-shield-check"></i><span>وساطة آمنة</span></div>
-            <div class="trust-item"><i class="fas fa-history"></i><span>تسليم سريع</span></div>
-            <div class="trust-item"><i class="fas fa-user-headset"></i><span>دعم متوفر</span></div>
-        </div>
-
-        <div class="row g-4" id="grid">
+        <div class="row g-3" id="grid">
             <% accounts.forEach(acc => { %>
             <div class="col-6 col-md-4 col-lg-3 acc-item" data-id="<%= acc.id %>" data-link="<%= acc.linkType %>">
-                <div class="account-card">
-                    <span class="badge-type"><%= acc.linkType %></span>
+                <div class="product-card">
+                    <div class="link-badge"><%= acc.linkType %></div>
                     
                     <% if(acc.status === 'تم البيع') { %>
-                        <div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.7);z-index:15;display:flex;align-items:center;justify-content:center;">
-                            <img src="https://cdn-icons-png.flaticon.com/512/4464/4464703.png" width="80" style="opacity: 0.8;">
+                        <div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.8);z-index:10;display:flex;align-items:center;justify-content:center;">
+                            <span class="badge bg-danger p-2 px-3 fs-6">تم البيع</span>
                         </div>
                     <% } %>
 
                     <a href="/account/<%= acc.id %>" style="text-decoration: none; color: inherit;">
-                        <div class="img-container">
+                        <div class="product-img-box">
                             <img src="<%= acc.imgs[0] %>" loading="lazy">
                         </div>
-                        <div class="p-3 text-center">
-                            <div class="d-flex justify-content-between mb-2 px-1">
-                                <span class="fw-bold text-primary small">#<%= acc.id %></span>
-                                <span class="text-muted small"><i class="fas fa-eye"></i> <%= acc.views %></span>
-                            </div>
-                            <h6 class="fw-bold text-truncate mb-3" style="color:var(--dark-blue)"><%= acc.title %></h6>
-                            <div class="price-dz mb-2"><%= acc.priceDZ %> <small style="font-size: 0.8rem;">د.ج</small></div>
+                        <div class="product-info">
+                            <span class="product-id">ID: #<%= acc.id %></span>
+                            <h6 class="product-title"><%= acc.title %></h6>
+                            <div class="product-price"><%= acc.priceDZ %> د.ج</div>
                         </div>
                     </a>
                     <div class="px-3 pb-3">
-                        <% if(acc.status === 'متاح') { %>
-                            <button onclick="contact('<%= acc.id %>')" class="btn-buy shadow-sm">شراء الآن</button>
-                        <% } else { %>
-                            <button class="btn btn-light w-100 py-2 fw-bold text-muted" disabled>مباع</button>
-                        <% } %>
+                        <button onclick="contact('<%= acc.id %>')" class="btn-order-now">شراء الآن</button>
                     </div>
                 </div>
             </div>
             <% }) %>
         </div>
 
-        <div class="my-5 pt-4">
-            <h4 class="fw-bold mb-4 text-center">الأسئلة الشائعة</h4>
-            <div class="accordion" id="faqAcc">
+        <div class="faq-section text-center">
+            <h4 class="faq-title">الأسئلة الشائعة</h4>
+            <div class="accordion mt-4 text-start" id="faqAcc">
                 <% faqs.forEach((faq, i) => { %>
-                <div class="accordion-item shadow-sm">
+                <div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f<%=i%>">
                             <%= faq.question %>
@@ -189,8 +167,15 @@
         </div>
     </div>
 
-    <footer class="py-4 text-center text-muted border-top mt-5 bg-white small">
-        WassitDZ Game - جميع الحقوق محفوظة
+    <footer class="text-center">
+        <div class="container">
+            <p>جميع الحقوق محفوظة © WassitDZ Game</p>
+            <div class="mt-2">
+                <i class="fab fa-cc-visa mx-1 fs-4"></i>
+                <i class="fab fa-cc-mastercard mx-1 fs-4"></i>
+                <i class="fas fa-money-bill-wave mx-1 fs-4"></i>
+            </div>
+        </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -199,9 +184,9 @@
             const id = document.getElementById('idSearch').value;
             const type = document.getElementById('filterType').value;
             document.querySelectorAll('.acc-item').forEach(el => {
-                const matchesId = id === "" || el.dataset.id === id;
-                const matchesType = type === "all" || el.dataset.link === type;
-                el.style.display = (matchesId && matchesType) ? "block" : "none";
+                const mId = id === "" || el.dataset.id === id;
+                const mTy = type === "all" || el.dataset.link === type;
+                el.style.display = (mId && mTy) ? "block" : "none";
             });
         }
         document.getElementById('idSearch').oninput = filter;
