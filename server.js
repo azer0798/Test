@@ -10,7 +10,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect(process.env.MONGO_URI).then(() => console.log("✅ MongoDB Connected"));
+mongoose.connect(process.env.MONGO_URI).then(() => console.log("✅ Database Connected"));
 
 cloudinary.config({ 
     cloud_name: process.env.CLOUDINARY_NAME, 
@@ -24,14 +24,11 @@ const storage = new CloudinaryStorage({
 });
 const upload = multer({ storage: storage });
 
+// Models
 const Account = mongoose.model('Account', new mongoose.Schema({
-    id: Number, 
-    title: String, 
-    priceUSD: String, 
-    priceDZ: String, 
-    linkType: String, 
-    imgs: [String],
-    status: { type: String, default: 'متاح' }
+    id: Number, title: String, priceUSD: String, priceDZ: String, 
+    linkType: String, imgs: [String], status: { type: String, default: 'متاح' },
+    views: { type: Number, default: 0 }
 }));
 
 const Settings = mongoose.model('Settings', new mongoose.Schema({
@@ -41,11 +38,13 @@ const Settings = mongoose.model('Settings', new mongoose.Schema({
 
 const FAQ = mongoose.model('FAQ', new mongoose.Schema({ question: String, answer: String }));
 
-app.use(session({ secret: 'wassit_secure', resave: false, saveUninitialized: true }));
+app.use(session({ secret: 'wassit_secure_key', resave: false, saveUninitialized: true }));
 app.set('view engine', 'ejs');
 app.set('views', __dirname);
 
-const cleanText = (text) => typeof text === 'string' ? text.replace(/[^\x20-\x7E]/g, '').trim() : text;
+const cleanText = (t) => typeof t === 'string' ? t.replace(/[^\x20-\x7E\u0600-\u06FF]/g, '').trim() : t;
+
+// --- Routes ---
 
 app.get('/', async (req, res) => {
     const accounts = await Account.find().sort({ id: -1 });
@@ -55,12 +54,13 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/account/:id', async (req, res) => {
-    const account = await Account.findOne({ id: req.params.id });
+    const account = await Account.findOneAndUpdate({ id: req.params.id }, { $inc: { views: 1 } }, { new: true });
     const settings = await Settings.findOne();
     if (!account) return res.redirect('/');
     res.render('product', { account, settings });
 });
 
+// Admin Panel Data Fetch
 app.get('/admin-panel', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     const accounts = await Account.find().sort({ id: -1 });
@@ -69,11 +69,11 @@ app.get('/admin-panel', async (req, res) => {
     res.render('admin', { accounts, settings, faqs });
 });
 
+// Accounts Management
 app.post('/add-account', upload.array('imageFiles', 5), async (req, res) => {
     const lastAcc = await Account.findOne().sort({ id: -1 });
     const newId = lastAcc ? lastAcc.id + 1 : 1;
-    const imagePaths = req.files.map(file => file.path);
-    await Account.create({ id: newId, ...req.body, imgs: imagePaths });
+    await Account.create({ id: newId, ...req.body, imgs: req.files.map(f => f.path) });
     res.redirect('/admin-panel');
 });
 
@@ -91,21 +91,34 @@ app.get('/delete-account/:id', async (req, res) => {
     res.redirect('/admin-panel');
 });
 
+// FAQ Management
+app.post('/add-faq', async (req, res) => {
+    if (!req.session.isAdmin) return res.status(403).send("Forbidden");
+    await FAQ.create(req.body);
+    res.redirect('/admin-panel');
+});
+
+app.get('/delete-faq/:id', async (req, res) => {
+    if (!req.session.isAdmin) return res.status(403).send("Forbidden");
+    await FAQ.findByIdAndDelete(req.params.id);
+    res.redirect('/admin-panel');
+});
+
+// Settings Update
 app.post('/update-settings', async (req, res) => {
+    if (!req.session.isAdmin) return res.status(403).send("Forbidden");
     let data = { ...req.body };
     for (let key in data) data[key] = cleanText(data[key]);
     await Settings.findOneAndUpdate({}, data, { upsert: true });
     res.redirect('/admin-panel');
 });
 
-app.post('/add-faq', async (req, res) => { await FAQ.create(req.body); res.redirect('/admin-panel'); });
-app.get('/delete-faq/:id', async (req, res) => { await FAQ.findByIdAndDelete(req.params.id); res.redirect('/admin-panel'); });
-
+// Login
 app.get('/login', (req, res) => res.render('login'));
 app.post('/login', (req, res) => {
     if (req.body.username === process.env.ADMIN_USER && req.body.password === process.env.ADMIN_PASS) {
         req.session.isAdmin = true; res.redirect('/admin-panel');
-    } else { res.send("Error"); }
+    } else res.send("Error");
 });
 
 app.listen(process.env.PORT || 3000);
