@@ -15,22 +15,27 @@
         .img-container { height: 180px; position: relative; overflow: hidden; }
         .img-container img { width: 100%; height: 100%; object-fit: cover; }
         .price-dz { font-size: 1.3rem; font-weight: 800; color: #10b981; }
-        .btn-buy { background: #000; color: #fff; width: 100%; border-radius: 12px; padding: 10px; font-weight: bold; text-decoration: none; display: block; text-align: center; }
+        .btn-buy { background: #000; color: #fff; width: 100%; border-radius: 12px; padding: 10px; font-weight: bold; text-decoration: none; display: block; text-align: center; border: none; }
     </style>
 </head>
 <body>
-
     <div class="announcement-bar"><marquee direction="right">⚡ <%= settings.announcement %> ⚡</marquee></div>
 
     <nav class="navbar"><img src="<%= settings.logoUrl %>" style="max-height: 120px;"></nav>
 
-    <div class="container mt-4 text-center">
+    <div class="container mt-3 text-center">
+        <a href="<%= settings.mediationLink %>" class="btn btn-outline-primary m-1 px-4">الوساطة</a>
+        <a href="<%= settings.sellAccountLink %>" class="btn btn-outline-success m-1 px-4">بيع حسابك</a>
+        <a href="<%= settings.supportLink %>" class="btn btn-outline-secondary m-1 px-4">الدعم</a>
+    </div>
+
+    <div class="container mt-4">
         <div class="row g-2 mb-4">
             <div class="col-8"><input type="number" id="idSearch" class="form-control" placeholder="🔍 ابحث برقم الحساب..."></div>
             <div class="col-4">
                 <select id="filterType" class="form-select">
                     <option value="all">الكل</option>
-                    <option value="Konami ID">Konami ID</option>
+                    <option value="Id Konami">Id Konami</option>
                     <option value="Google Play">Google Play</option>
                 </select>
             </div>
@@ -40,10 +45,11 @@
             <% accounts.forEach(acc => { %>
             <div class="col-6 col-md-4 col-lg-3 acc-item" data-id="<%= acc.id %>" data-link="<%= acc.linkType %>">
                 <div class="account-card">
+                    <% if(acc.status === 'تم البيع') { %>
+                        <div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:5;display:flex;align-items:center;justify-content:center;"><span class="badge bg-danger">تم البيع</span></div>
+                    <% } %>
                     <a href="/account/<%= acc.id %>" style="text-decoration: none; color: inherit;">
-                        <div class="img-container">
-                            <img src="<%= acc.imgs[0] %>" loading="lazy">
-                        </div>
+                        <div class="img-container"><img src="<%= acc.imgs[0] %>" loading="lazy"></div>
                         <div class="p-3 text-center">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <span class="badge bg-light text-dark border" style="font-size: 10px;"><%= acc.linkType %></span>
@@ -54,7 +60,7 @@
                         </div>
                     </a>
                     <div class="px-3 pb-3">
-                        <button onclick="contact('<%= acc.id %>')" class="btn-buy border-0">شراء الآن</button>
+                        <button onclick="contact('<%= acc.id %>')" class="btn-buy">شراء الآن</button>
                     </div>
                 </div>
             </div>
@@ -65,15 +71,9 @@
             <h4 class="fw-bold mb-4 text-center">الأسئلة الشائعة</h4>
             <div class="accordion" id="faqAcc">
                 <% faqs.forEach((faq, i) => { %>
-                <div class="accordion-item shadow-sm mb-2 border-0" style="border-radius: 10px; overflow: hidden;">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed py-3 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#f<%=i%>">
-                            <%= faq.question %>
-                        </button>
-                    </h2>
-                    <div id="f<%=i%>" class="accordion-collapse collapse" data-bs-parent="#faqAcc">
-                        <div class="accordion-body text-muted"><%= faq.answer %></div>
-                    </div>
+                <div class="accordion-item mb-2 border-0 shadow-sm">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed py-3 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#f<%=i%>"><%= faq.question %></button></h2>
+                    <div id="f<%=i%>" class="accordion-collapse collapse" data-bs-parent="#faqAcc"><div class="accordion-body"><%= faq.answer %></div></div>
                 </div>
                 <% }) %>
             </div>
@@ -101,12 +101,8 @@
         function contact(id) {
             const link = "<%= settings.buyNowLink %>";
             const msg = "سلام عليكم، أريد شراء الحساب رقم: #" + id;
-            if (link.includes("wa.me")) window.open(link + "?text=" + encodeURIComponent(msg), "_blank");
-            else { 
-                navigator.clipboard.writeText(msg); 
-                alert("تم نسخ رقم الحساب، قم بلصقه في تلغرام"); 
-                window.open(link, "_blank"); 
-            }
+            if (link.includes("wa.me")) window.open(link.split('?')[0] + "?text=" + encodeURIComponent(msg), "_blank");
+            else { navigator.clipboard.writeText(msg); alert("تم نسخ رقم الحساب، قم بلصقه في تلغرام"); window.open(link, "_blank"); }
         }
     </script>
 </body>
