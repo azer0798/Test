@@ -3,83 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WassitDZ Game</title>
+    <title>WassitDZ Game | متجر الحسابات</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: <%= settings.themeColor %>; }
-        body { background: #f4f7f9; font-family: 'Segoe UI', sans-serif; padding-top: 45px; }
-        .announcement-bar { background: #0f172a; color: #fff; height: 45px; line-height: 45px; position: fixed; top: 0; width: 100%; z-index: 2000; overflow: hidden; }
-        .navbar { background: #fff; border-bottom: 4px solid var(--primary); height: 160px; display: flex; align-items: center; justify-content: center; }
-        .account-card { background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: relative; height: 100%; border: none; }
-        .img-container { height: 180px; position: relative; overflow: hidden; }
-        .img-container img { width: 100%; height: 100%; object-fit: cover; }
-        .price-dz { font-size: 1.3rem; font-weight: 800; color: #10b981; }
-        .btn-buy { background: #000; color: #fff; width: 100%; border-radius: 12px; padding: 10px; font-weight: bold; border: none; }
+        :root { 
+            --primary: <%= settings.themeColor %>; 
+            --dark-blue: #0f172a;
+            --light-bg: #f8fafc;
+            --success-green: #10b981;
+        }
+        
+        body { background: var(--light-bg); font-family: 'Segoe UI', Roboto, sans-serif; padding-top: 45px; color: #334155; }
+        
+        /* شريط الإعلان */
+        .announcement-bar { 
+            background: var(--dark-blue); 
+            color: #fff; 
+            height: 45px; 
+            line-height: 45px; 
+            position: fixed; 
+            top: 0; 
+            width: 100%; 
+            z-index: 2000; 
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* الهيدر واللوجو */
+        .navbar { 
+            background: #fff; 
+            border-bottom: 3px solid var(--primary); 
+            padding: 20px 0;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .navbar img { max-height: 100px; transition: transform 0.3s; }
+        .navbar img:hover { transform: scale(1.05); }
+
+        /* أزرار التنقل السريع */
+        .quick-links .btn {
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: 0.3s;
+            border-width: 2px;
+        }
+        .quick-links .btn:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+        /* بطاقة الحساب (التطوير الجمالي) */
+        .account-card { 
+            background: #fff; 
+            border-radius: 20px; 
+            overflow: hidden; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04); 
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+            height: 100%;
+            position: relative;
+        }
+        .account-card:hover { 
+            transform: translateY(-8px); 
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1); 
+            border-color: var(--primary);
+        }
+        
+        .img-container { height: 190px; position: relative; overflow: hidden; background: #eee; }
+        .img-container img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .account-card:hover .img-container img { transform: scale(1.1); }
+
+        /* شارات الحالة */
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: rgba(255,255,255,0.9);
+            color: var(--dark-blue);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .price-dz { font-size: 1.4rem; font-weight: 800; color: var(--success-green); }
+        
+        .btn-buy { 
+            background: var(--dark-blue); 
+            color: #fff; 
+            width: 100%; 
+            border-radius: 12px; 
+            padding: 12px; 
+            font-weight: 700; 
+            border: none;
+            transition: 0.3s;
+        }
+        .btn-buy:hover { background: var(--primary); letter-spacing: 0.5px; }
+
+        /* تحسين الفلترة */
+        .filter-section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 18px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            margin-bottom: 30px;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+        }
+        .form-control:focus { border-color: var(--primary); box-shadow: none; }
+
+        /* قسم الثقة */
+        .trust-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: #fff;
+            border-radius: 15px;
+            margin: 40px 0;
+            text-align: center;
+        }
+        .trust-item i { color: var(--primary); font-size: 1.5rem; margin-bottom: 10px; }
+        .trust-item div { font-weight: 700; font-size: 0.9rem; }
+
+        /* الأسئلة الشائعة */
+        .accordion-item { border: none; margin-bottom: 10px; border-radius: 12px !important; overflow: hidden; }
+        .accordion-button { font-weight: 700; background: #fff !important; color: var(--dark-blue) !important; }
+        .accordion-button:not(.collapsed) { border-bottom: 1px solid #f1f5f9; }
     </style>
 </head>
 <body>
-    <div class="announcement-bar"><marquee direction="right">⚡ <%= settings.announcement %> ⚡</marquee></div>
-    <nav class="navbar"><img src="<%= settings.logoUrl %>" style="max-height: 120px;"></nav>
 
-    <div class="container mt-3 text-center">
-        <a href="<%= settings.mediationLink %>" class="btn btn-outline-primary m-1 px-4">الوساطة</a>
-        <a href="<%= settings.sellAccountLink %>" class="btn btn-outline-success m-1 px-4">بيع حسابك</a>
-        <a href="<%= settings.supportLink %>" class="btn btn-outline-secondary m-1 px-4">الدعم</a>
+    <div class="announcement-bar"><marquee direction="right">⚡ <%= settings.announcement %> ⚡</marquee></div>
+
+    <nav class="navbar text-center">
+        <div class="container">
+            <img src="<%= settings.logoUrl %>" alt="Logo">
+        </div>
+    </nav>
+
+    <div class="container mt-4 quick-links text-center">
+        <a href="<%= settings.mediationLink %>" class="btn btn-outline-primary m-1 px-4"><i class="fas fa-shield-alt me-1"></i> الوساطة</a>
+        <a href="<%= settings.sellAccountLink %>" class="btn btn-outline-success m-1 px-4"><i class="fas fa-plus-circle me-1"></i> بيع حسابك</a>
+        <a href="<%= settings.supportLink %>" class="btn btn-outline-secondary m-1 px-4"><i class="fas fa-headset me-1"></i> الدعم</a>
     </div>
 
     <div class="container mt-4">
-        <div class="row g-2 mb-4">
-            <div class="col-8"><input type="number" id="idSearch" class="form-control" placeholder="🔍 ابحث برقم الحساب..."></div>
-            <div class="col-4">
-                <select id="filterType" class="form-select">
-                    <option value="all">الكل</option>
-                    <option value="Id Konami">Id Konami</option>
-                    <option value="Google Play">Google Play</option>
-                </select>
+        <div class="filter-section">
+            <div class="row g-2">
+                <div class="col-8">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="number" id="idSearch" class="form-control border-start-0" placeholder="ابحث برقم الحساب (ID)...">
+                    </div>
+                </div>
+                <div class="col-4">
+                    <select id="filterType" class="form-select fw-bold">
+                        <option value="all">الكل</option>
+                        <option value="Id Konami">Id Konami</option>
+                        <option value="Google Play">Google Play</option>
+                    </select>
+                </div>
             </div>
         </div>
 
-        <div class="row g-3" id="grid">
+        <div class="trust-bar shadow-sm">
+            <div class="trust-item"><i class="fas fa-check-double"></i><div>وساطة آمنة</div></div>
+            <div class="trust-item"><i class="fas fa-bolt"></i><div>تسليم سريع</div></div>
+            <div class="trust-item"><i class="fas fa-users"></i><div>دعم متواصل</div></div>
+        </div>
+
+        <div class="row g-4" id="grid">
             <% accounts.forEach(acc => { %>
             <div class="col-6 col-md-4 col-lg-3 acc-item" data-id="<%= acc.id %>" data-link="<%= acc.linkType %>">
-                <div class="account-card shadow-sm">
+                <div class="account-card">
+                    <span class="status-badge"><%= acc.linkType %></span>
                     <% if(acc.status === 'تم البيع') { %>
-                        <div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:5;display:flex;align-items:center;justify-content:center;"><span class="badge bg-danger">تم البيع</span></div>
+                        <div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.7);z-index:15;display:flex;align-items:center;justify-content:center;">
+                            <img src="https://cdn-icons-png.flaticon.com/512/10245/10245341.png" width="100">
+                        </div>
                     <% } %>
                     <a href="/account/<%= acc.id %>" style="text-decoration: none; color: inherit;">
-                        <div class="img-container"><img src="<%= acc.imgs[0] %>" loading="lazy"></div>
-                        <div class="p-3 text-center">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="badge bg-light text-dark border" style="font-size: 10px;"><%= acc.linkType %></span>
-                                <span class="text-primary fw-bold" style="font-size: 12px;">#<%= acc.id %></span>
+                        <div class="img-container">
+                            <img src="<%= acc.imgs[0] %>" loading="lazy">
+                        </div>
+                        <div class="p-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small fw-bold">#<%= acc.id %></span>
+                                <span class="small"><i class="fas fa-eye me-1"></i><%= acc.views %></span>
                             </div>
-                            <h6 class="fw-bold text-truncate"><%= acc.title %></h6>
-                            <div class="price-dz"><%= acc.priceDZ %> د.ج</div>
+                            <h6 class="fw-bold text-truncate mb-2" style="color:var(--dark-blue)"><%= acc.title %></h6>
+                            <div class="price-dz"><%= acc.priceDZ %> <small style="font-size: 0.7rem;">د.ج</small></div>
                         </div>
                     </a>
                     <div class="px-3 pb-3">
-                        <button onclick="contact('<%= acc.id %>')" class="btn-buy w-100 py-2">شراء الآن</button>
+                        <% if(acc.status === 'متاح') { %>
+                            <button onclick="contact('<%= acc.id %>')" class="btn-buy shadow-sm">شراء الآن</button>
+                        <% } else { %>
+                            <button class="btn btn-light w-100 py-2 fw-bold text-danger" disabled>مباع</button>
+                        <% } %>
                     </div>
                 </div>
             </div>
             <% }) %>
         </div>
 
-        <div class="my-5 pt-4 border-top">
-            <h4 class="fw-bold mb-4 text-center">الأسئلة الشائعة</h4>
+        <div class="my-5 pt-5">
+            <div class="text-center mb-4">
+                <h3 class="fw-bold">هل لديك استفسار؟</h3>
+                <p class="text-muted">إليك أكثر الأسئلة شيوعاً بين عملائنا</p>
+            </div>
             <div class="accordion" id="faqAcc">
                 <% faqs.forEach((faq, i) => { %>
-                <div class="accordion-item mb-2 border-0 shadow-sm rounded">
-                    <h2 class="accordion-header"><button class="accordion-button collapsed py-3 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#f<%=i%>"><%= faq.question %></button></h2>
-                    <div id="f<%=i%>" class="accordion-collapse collapse" data-bs-parent="#faqAcc"><div class="accordion-body text-muted"><%= faq.answer %></div></div>
+                <div class="accordion-item shadow-sm">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f<%=i%>">
+                            <i class="far fa-question-circle me-2 text-primary"></i> <%= faq.question %>
+                        </button>
+                    </h2>
+                    <div id="f<%=i%>" class="accordion-collapse collapse" data-bs-parent="#faqAcc">
+                        <div class="accordion-body"><%= faq.answer %></div>
+                    </div>
                 </div>
                 <% }) %>
             </div>
         </div>
     </div>
 
-    <footer class="py-4 text-center text-muted border-top mt-5 small">WassitDZ Game - جميع الحقوق محفوظة</footer>
+    <footer class="py-4 text-center border-top mt-5 bg-white">
+        <p class="mb-0 fw-bold text-muted small">WassitDZ Game - جميع الحقوق محفوظة</p>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
