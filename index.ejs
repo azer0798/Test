@@ -30,15 +30,51 @@
             font-weight: 500;
         }
 
-        /* الهيدر واللوجو */
-        .navbar { 
-            background: #fff; 
-            border-bottom: 3px solid var(--primary); 
-            padding: 20px 0;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-        }
-        .navbar img { max-height: 100px; transition: transform 0.3s; }
-        .navbar img:hover { transform: scale(1.05); }
+        /* تنسيق الهيدر الاحترافي */
+.navbar { 
+    background: #fff; 
+    border-bottom: 3px solid var(--primary); 
+    padding: 30px 0; /* زيادة المساحة العمودية */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    position: relative;
+}
+
+.logo-wrapper {
+    display: inline-block;
+    position: relative;
+    padding: 10px;
+    background: #fff;
+    border-radius: 20px;
+    /* إضافة ظل ناعم جداً خلف اللوجو لبروزه */
+    box-shadow: 0 15px 35px rgba(0,0,0,0.02); 
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.logo-wrapper img { 
+    max-height: 120px; /* حجم مثالي للوجو */
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
+
+.logo-wrapper:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+}
+
+/* إضافة خط زينة تحت اللوجو */
+.logo-wrapper::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 20%;
+    right: 20%;
+    height: 4px;
+    background: var(--primary);
+    border-radius: 10px;
+    opacity: 0.3;
+}
+
 
         /* أزرار التنقل السريع */
         .quick-links .btn {
