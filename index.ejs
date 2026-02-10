@@ -17,11 +17,11 @@
         /* شريط الإعلان */
         .top-notice { background: #000; color: #fff; height: 40px; line-height: 40px; position: fixed; top: 0; width: 100%; z-index: 2000; font-size: 13px; font-weight: bold; text-align: center; }
 
-        /* الهيدر المحدث: القائمة يمين واللوغو يسار */
+        /* الهيدر: القائمة يمين واللوغو يسار */
         .header-main { 
             background: #fff; padding: 15px 20px; border-bottom: 1px solid #eee;
             display: flex; align-items: center; justify-content: space-between;
-            position: sticky; top: 40px; z-index: 1000; flex-direction: row-reverse; /* لقلب العناصر */
+            position: sticky; top: 40px; z-index: 1000; flex-direction: row-reverse;
         }
         .header-main img { max-height: 60px; width: auto; }
         .menu-btn { background: #fff; border: 1px solid #eee; padding: 10px 15px; border-radius: 8px; cursor: pointer; color: #333; font-size: 20px; }
@@ -38,20 +38,26 @@
 
         /* البحث والمنتجات */
         .search-container { max-width: 800px; margin: 30px auto; padding: 0 15px; }
-        .filter-input { border: 2px solid #eee; border-radius: 12px; padding: 12px; font-size: 15px; background: #fff; outline: none; transition: 0.3s; }
-        .filter-input:focus { border-color: var(--primary); }
+        .filter-input { border: 2px solid #eee; border-radius: 12px; padding: 12px; font-size: 15px; background: #fff; outline: none; }
         
         .product-card { background: #fff; border-radius: 15px; border: 1px solid #edf2f7; transition: 0.3s; position: relative; overflow: hidden; height: 100%; }
-        .product-img-box { height: 170px; background: #f9f9f9; }
+        .product-img-box { height: 170px; background: #f9f9f9; position: relative; }
         .product-img-box img { width: 100%; height: 100%; object-fit: cover; }
-        .product-price { font-size: 18px; font-weight: 800; color: #2ecc71; margin-top: 10px; }
-        .btn-order-now { background: #000; color: #fff; width: 100%; border: none; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        
+        .link-badge { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; color: #333; z-index: 10; border: 1px solid #eee; }
+        
+        /* شارة "تم البيع" */
+        .sold-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.6); z-index: 15; display: flex; align-items: center; justify-content: center; }
+        .sold-label { background: #ff4757; color: #fff; padding: 4px 12px; border-radius: 6px; font-weight: 900; font-size: 13px; transform: rotate(-10deg); border: 2px solid #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
 
-        /* الأسئلة الشائعة */
+        .product-price { font-size: 18px; font-weight: 800; color: #2ecc71; margin-top: 10px; }
+        .btn-order-now { background: #000; color: #fff; width: 100%; border: none; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-order-now:hover { background: var(--primary); }
+        .btn-sold { background: #bdc3c7 !important; color: #7f8c8d !important; cursor: not-allowed; }
+
+        /* الأسئلة والفوتر */
         .faq-section { margin-top: 50px; padding-bottom: 30px; }
         .accordion-item { border: 1px solid #eee !important; border-radius: 12px !important; margin-bottom: 10px; overflow: hidden; }
-
-        /* الفوتر */
         footer { background: #fff; padding: 30px 0; border-top: 1px solid #eee; margin-top: 40px; font-size: 14px; color: #888; text-align: center; font-weight: bold; }
     </style>
 </head>
@@ -71,7 +77,7 @@
     <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h5 class="fw-bold m-0">القائمة</h5>
+            <h5 class="fw-bold m-0 text-primary">القائمة</h5>
             <button class="btn-close" onclick="toggleSidebar()"></button>
         </div>
         <a href="/" class="sidebar-link"><i class="fas fa-home"></i> الرئيسية</a>
@@ -83,7 +89,7 @@
     <div class="container">
         <div class="search-container">
             <div class="row g-2">
-                <div class="col-8"><input type="number" id="idSearch" class="filter-input w-100" placeholder="البحث برقم الـ ID..."></div>
+                <div class="col-8"><input type="number" id="idSearch" class="filter-input w-100" placeholder="ابحث برقم الـ ID..."></div>
                 <div class="col-4">
                     <select id="filterType" class="filter-input w-100 fw-bold">
                         <option value="all">الكل</option>
@@ -98,6 +104,12 @@
             <% accounts.forEach(acc => { %>
             <div class="col-6 col-md-4 col-lg-3 acc-item" data-id="<%= acc.id %>" data-link="<%= acc.linkType %>">
                 <div class="product-card shadow-sm">
+                    <% if(acc.status === 'تم البيع') { %>
+                        <div class="sold-overlay"><span class="sold-label">مباع</span></div>
+                    <% } %>
+
+                    <div class="link-badge"><%= acc.linkType %></div>
+                    
                     <a href="/account/<%= acc.id %>" style="text-decoration: none; color: inherit;">
                         <div class="product-img-box"><img src="<%= acc.imgs[0] %>" loading="lazy"></div>
                         <div class="p-3 text-center">
@@ -107,7 +119,11 @@
                         </div>
                     </a>
                     <div class="px-3 pb-3">
-                        <button onclick="contact('<%= acc.id %>')" class="btn-order-now">شراء الآن</button>
+                        <% if(acc.status === 'تم البيع') { %>
+                            <button class="btn-order-now btn-sold" disabled>مباع حالياً</button>
+                        <% } else { %>
+                            <button onclick="contact('<%= acc.id %>')" class="btn-order-now">شراء الآن</button>
+                        <% } %>
                     </div>
                 </div>
             </div>
@@ -134,9 +150,7 @@
     </div>
 
     <footer>
-        <div class="container">
-            <p class="mb-0">جميع الحقوق محفوظة © WassitDZ Game 2026</p>
-        </div>
+        <p class="mb-0">جميع الحقوق محفوظة © WassitDZ Game 2026</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
