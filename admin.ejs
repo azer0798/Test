@@ -2,152 +2,61 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم المتكاملة | WassitDZ</title>
+    <title>إدارة WassitDZ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { background: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
-        .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .section-title { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; font-weight: bold; color: #334155; }
-        .btn-primary { background-color: #2563eb; border: none; }
-        .btn-success { background-color: #10b981; border: none; }
-        .form-label { font-weight: 600; font-size: 0.9rem; color: #475569; }
-    </style>
+    <style>body { background: #f8fafc; padding: 20px; } .card { border: none; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }</style>
 </head>
 <body>
-
-<nav class="navbar navbar-dark bg-dark mb-4">
-    <div class="container">
-        <span class="navbar-brand mb-0 h1"><i class="fas fa-user-shield me-2"></i> لوحة إدارة WassitDZ</span>
-        <a href="/" class="btn btn-outline-light btn-sm">معاينة الموقع</a>
+<div class="container">
+    <div class="card p-4 mb-4">
+        <h6 class="fw-bold border-bottom pb-2 mb-3">إعدادات الهوية والروابط</h6>
+        <form action="/update-settings" method="POST" class="row g-3 small">
+            <div class="col-md-6"><label>رابط اللوغو (Cloudinary)</label><input type="text" name="logoUrl" class="form-control" value="<%= settings.logoUrl %>"></div>
+            <div class="col-md-3"><label>لون الموقع</label><input type="color" name="themeColor" class="form-control form-control-color w-100" value="<%= settings.themeColor %>"></div>
+            <div class="col-md-3"><label>نص الإشهار</label><input type="text" name="announcement" class="form-control" value="<%= settings.announcement %>"></div>
+            <div class="col-md-3"><label>رابط الشراء</label><input type="text" name="buyNowLink" class="form-control" value="<%= settings.buyNowLink %>"></div>
+            <div class="col-md-3"><label>رابط الوساطة</label><input type="text" name="mediationLink" class="form-control" value="<%= settings.mediationLink %>"></div>
+            <div class="col-md-3"><label>رابط بيع حساب</label><input type="text" name="sellAccountLink" class="form-control" value="<%= settings.sellAccountLink %>"></div>
+            <div class="col-md-3"><label>رابط الدعم</label><input type="text" name="supportLink" class="form-control" value="<%= settings.supportLink %>"></div>
+            <div class="col-12 text-end"><button class="btn btn-dark px-4">حفظ الإعدادات</button></div>
+        </form>
     </div>
-</nav>
 
-<div class="container pb-5">
     <div class="row">
-        <div class="col-lg-12">
-            <div class="card p-4">
-                <h5 class="section-title"><i class="fas fa-cogs me-2"></i> إعدادات المتجر العامة</h5>
-                <form action="/update-settings" method="POST" class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">رابط الشعار (Logo URL)</label>
-                        <input type="text" name="logoUrl" class="form-control" value="<%= settings.logoUrl %>" placeholder="https://res.cloudinary.com/...">
+        <div class="col-md-5">
+            <div class="card p-4 mb-3">
+                <h6 class="fw-bold mb-3">نشر حساب جديد</h6>
+                <form action="/add-account" method="POST" enctype="multipart/form-data" class="small">
+                    <input type="text" name="title" class="form-control mb-2" placeholder="العنوان" required>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6"><input type="text" name="priceDZ" class="form-control" placeholder="السعر د.ج" required></div>
+                        <div class="col-6"><input type="text" name="priceUSD" class="form-control" placeholder="السعر $" required></div>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">لون التنسيق</label>
-                        <input type="color" name="themeColor" class="form-control form-control-color w-100" value="<%= settings.themeColor %>">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">نص الشريط العلوي</label>
-                        <input type="text" name="announcement" class="form-control" value="<%= settings.announcement %>">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">رابط الشراء (واتساب/تليجرام)</label>
-                        <input type="text" name="buyNowLink" class="form-control" value="<%= settings.buyNowLink %>">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">رابط الدعم الفني</label>
-                        <input type="text" name="supportLink" class="form-control" value="<%= settings.supportLink %>">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">رابط الوساطة</label>
-                        <input type="text" name="mediationLink" class="form-control" value="<%= settings.mediationLink %>">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">رابط بيع حساب</label>
-                        <input type="text" name="sellAccountLink" class="form-control" value="<%= settings.sellAccountLink %>">
-                    </div>
-                    <div class="col-12 text-end mt-4">
-                        <button type="submit" class="btn btn-dark px-5">حفظ التغييرات</button>
-                    </div>
+                    <select name="linkType" class="form-select mb-2">
+                        <option>Konami ID</option><option>Google Play</option><option>غير مربوط</option>
+                    </select>
+                    <input type="file" name="imageFiles" class="form-control mb-3" multiple required>
+                    <button class="btn btn-primary w-100 fw-bold">نشر الحساب</button>
                 </form>
             </div>
         </div>
-
-        <div class="col-md-5">
+        <div class="col-md-7">
             <div class="card p-4">
-                <h5 class="section-title"><i class="fas fa-plus-circle me-2"></i> نشر حساب جديد</h5>
-                <form action="/add-account" method="POST" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label class="form-label">عنوان الحساب</label>
-                        <input type="text" name="title" class="form-control" placeholder="مثلاً: حساب أسطوري 100 ليفل" required>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col">
-                            <label class="form-label">السعر (د.ج)</label>
-                            <input type="text" name="priceDZ" class="form-control" placeholder="5000" required>
-                        </div>
-                        <div class="col">
-                            <label class="form-label">نوع الربط</label>
-                            <select name="linkType" class="form-select">
-                                <option>ID Konami</option>
-                                <option>Google Play</option>
-                                <option>صافي (غير مربوط)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">صور الحساب (حتى 5 صور)</label>
-                        <input type="file" name="imageFiles" class="form-control" multiple required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2">نشر الحساب الآن</button>
+                <h6 class="fw-bold mb-3">إدارة الأسئلة الشائعة</h6>
+                <form action="/add-faq" method="POST" class="row g-2 mb-3 small">
+                    <div class="col-5"><input type="text" name="question" class="form-control" placeholder="السؤال" required></div>
+                    <div class="col-5"><input type="text" name="answer" class="form-control" placeholder="الإجابة" required></div>
+                    <div class="col-2"><button class="btn btn-success w-100">أضف</button></div>
                 </form>
-            </div>
-
-            <div class="card p-4 mt-4">
-                <h5 class="section-title"><i class="fas fa-question-circle me-2"></i> الأسئلة الشائعة FAQ</h5>
-                <form action="/add-faq" method="POST" class="mb-3">
-                    <input type="text" name="question" class="form-control mb-2" placeholder="السؤال" required>
-                    <textarea name="answer" class="form-control mb-2" rows="2" placeholder="الإجابة" required></textarea>
-                    <button type="submit" class="btn btn-success btn-sm w-100">إضافة سؤال جديد</button>
-                </form>
-                <div class="list-group list-group-flush">
-                    <% faqs.forEach(faq => { %>
-                    <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0">
-                        <span class="small text-truncate" style="max-width: 80%;"><%= faq.question %></span>
-                        <a href="/delete-faq/<%= faq._id %>" class="text-danger"><i class="fas fa-trash"></i></a>
-                    </div>
+                <div class="list-group small">
+                    <% faqs.forEach(f => { %>
+                    <div class="list-group-item d-flex justify-content-between p-2"><%= f.question %> <a href="/delete-faq/<%= f._id %>" class="text-danger"><i class="fas fa-trash"></i></a></div>
                     <% }) %>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-7">
-            <div class="card p-4">
-                <h5 class="section-title"><i class="fas fa-list me-2"></i> الحسابات المعروضة (<%= accounts.length %>)</h5>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle text-center">
-                        <thead class="table-light">
-                            <tr>
-                                <th>الصورة</th>
-                                <th>العنوان</th>
-                                <th>السعر</th>
-                                <th>إجراء</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% accounts.forEach(acc => { %>
-                            <tr>
-                                <td><img src="<%= acc.imgs[0] %>" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"></td>
-                                <td class="small fw-bold"><%= acc.title %></td>
-                                <td><span class="badge bg-success"><%= acc.priceDZ %> د.ج</span></td>
-                                <td>
-                                    <a href="/delete/<%= acc.id %>" class="btn btn-danger btn-sm" onclick="return confirm('حذف هذا الحساب نهائياً؟')">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            <% }) %>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
