@@ -10,83 +10,55 @@
         :root { 
             --primary: <%= settings.themeColor || '#007bff' %>; 
             --bg-body: #f4f6f8;
-            --text-main: #2d3436;
         }
         
-        body { background: var(--bg-body); font-family: 'Segoe UI', sans-serif; color: var(--text-main); padding-top: 40px; margin: 0; }
-        
-        /* شريط التنبيه العلوي */
-        .top-notice { 
-            background: #000; color: #fff; height: 40px; line-height: 40px; 
-            position: fixed; top: 0; width: 100%; z-index: 2000; font-size: 13px; font-weight: bold; text-align: center;
-        }
+        body { background: var(--bg-body); font-family: 'Segoe UI', sans-serif; padding-top: 40px; margin: 0; overflow-x: hidden; }
 
-        /* الهيدر */
+        /* الهيدر مع زر القائمة */
         .header-main { 
-            background: #fff; padding: 25px 0; border-bottom: 1px solid #eee; text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02); margin-top: 0;
+            background: #fff; padding: 15px 20px; border-bottom: 1px solid #eee;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 40px; z-index: 1000;
         }
-        .header-main img { max-height: 85px; width: auto; }
+        .header-main img { max-height: 60px; width: auto; }
 
-        /* الأزرار العلوية */
-        .nav-links { background: #fff; padding: 10px 0; border-bottom: 1px solid #eee; margin-bottom: 25px; }
-        .nav-links .btn { 
-            border: none; font-weight: bold; font-size: 14px; color: #555; padding: 8px 15px; 
-            border-radius: 8px; transition: 0.3s; text-decoration: none;
+        .menu-btn {
+            background: #fff; border: 1px solid #eee; padding: 10px 15px;
+            border-radius: 8px; cursor: pointer; color: #333; font-size: 20px;
         }
-        .nav-links .btn:hover { background: #f8f9fa; color: var(--primary); }
 
-        /* البحث والفلترة */
-        .search-container { max-width: 800px; margin: 0 auto 30px; padding: 0 15px; }
-        .filter-input { 
-            border: 2px solid #eee; border-radius: 12px; padding: 12px 20px; 
-            font-size: 15px; background: #fff; transition: 0.3s;
+        /* القائمة الجانبية (Sidebar) */
+        .sidebar {
+            position: fixed; top: 0; right: -280px; width: 280px; height: 100%;
+            background: #fff; z-index: 3000; transition: 0.4s ease;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1); padding: 20px;
         }
-        .filter-input:focus { border-color: var(--primary); outline: none; }
+        .sidebar.active { right: 0; }
+        
+        .sidebar-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 2999; display: none;
+        }
+        .sidebar-overlay.active { display: block; }
 
-        /* بطاقة المنتج */
-        .product-card { 
-            background: #fff; border-radius: 15px; border: 1px solid #edf2f7; 
-            height: 100%; transition: 0.3s; position: relative; overflow: hidden;
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .sidebar-link {
+            display: block; padding: 15px; color: #333; text-decoration: none;
+            font-weight: bold; border-radius: 10px; margin-bottom: 10px; transition: 0.3s;
         }
-        .product-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
-        .product-img-box { position: relative; width: 100%; height: 180px; background: #f9f9f9; }
+        .sidebar-link:hover { background: #f8f9fa; color: var(--primary); }
+        .sidebar-link i { margin-left: 10px; width: 20px; text-align: center; }
+
+        /* باقي التنسيقات (البحث والبطاقات) */
+        .top-notice { background: #000; color: #fff; height: 40px; line-height: 40px; position: fixed; top: 0; width: 100%; z-index: 2000; font-size: 13px; font-weight: bold; text-align: center; }
+        .search-container { max-width: 800px; margin: 30px auto; padding: 0 15px; }
+        .filter-input { border: 2px solid #eee; border-radius: 12px; padding: 12px; font-size: 15px; background: #fff; }
+        
+        .product-card { background: #fff; border-radius: 15px; border: 1px solid #edf2f7; transition: 0.3s; position: relative; overflow: hidden; height: 100%; }
+        .product-img-box { height: 170px; background: #f9f9f9; }
         .product-img-box img { width: 100%; height: 100%; object-fit: cover; }
-
-        .link-badge {
-            position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9);
-            padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; color: #333; z-index: 5;
-        }
-
-        .product-info { padding: 15px; text-align: center; }
-        .product-price { font-size: 18px; font-weight: 800; color: #2ecc71; margin-bottom: 15px; }
-
-        .btn-order-now { 
-            background: #000; color: #fff; width: 100%; border: none; padding: 10px;
-            border-radius: 10px; font-weight: bold; font-size: 14px; transition: 0.3s; cursor: pointer;
-        }
-        .btn-order-now:hover { background: var(--primary); }
-
-        /* الزر العائم والنافذة */
-        .floating-contact { position: fixed; bottom: 25px; right: 25px; z-index: 9999; }
-        .btn-main-float {
-            width: 60px; height: 60px; background: #000; color: #fff; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 24px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); cursor: pointer; border: none;
-        }
-        .contact-window {
-            position: absolute; bottom: 80px; right: 0; width: 250px; background: #fff;
-            border-radius: 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); display: none;
-            overflow: hidden; border: 1px solid #eee;
-        }
-        .window-header { background: #000; color: #fff; padding: 15px; font-size: 14px; font-weight: bold; text-align: center; }
-        .contact-option {
-            display: flex; align-items: center; padding: 12px; text-decoration: none;
-            color: #333; font-weight: bold; font-size: 14px; background: #f8f9fa; border-bottom: 1px solid #eee;
-        }
-        .contact-option i { font-size: 20px; margin-left: 12px; }
-
-        footer { background: #fff; padding: 30px 0; border-top: 1px solid #eee; margin-top: 60px; font-size: 13px; color: #888; text-align: center; }
+        .product-price { font-size: 18px; font-weight: 800; color: #2ecc71; margin-top: 10px; }
+        .btn-order-now { background: #000; color: #fff; width: 100%; border: none; padding: 10px; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -94,25 +66,32 @@
     <div class="top-notice"><marquee direction="right"><%= settings.announcement %></marquee></div>
 
     <header class="header-main">
-        <div class="container">
+        <div class="logo">
             <a href="/"><img src="<%= settings.logoUrl %>" alt="Logo"></a>
         </div>
+        <button class="menu-btn" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
     </header>
 
-    <div class="nav-links">
-        <div class="container d-flex justify-content-center flex-wrap">
-            <a href="<%= settings.mediationLink %>" class="btn">الوساطة</a>
-            <a href="<%= settings.sellAccountLink %>" class="btn">بيع حسابك</a>
-            <a href="<%= settings.supportLink %>" class="btn">الدعم الفني</a>
+    <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h5 class="fw-bold m-0">القائمة</h5>
+            <button class="btn-close" onclick="toggleSidebar()"></button>
         </div>
+        <a href="/" class="sidebar-link"><i class="fas fa-home"></i> الرئيسية</a>
+        <a href="<%= settings.mediationLink %>" class="sidebar-link"><i class="fas fa-shield-alt"></i> قسم الوساطة</a>
+        <a href="<%= settings.sellAccountLink %>" class="sidebar-link"><i class="fas fa-plus-circle"></i> بيع حسابك</a>
+        <a href="<%= settings.supportLink %>" class="sidebar-link"><i class="fas fa-headset"></i> الدعم الفني</a>
+        <hr>
+        <div class="p-2 text-center small text-muted">تابعنا على وسائل التواصل</div>
     </div>
 
     <div class="container">
         <div class="search-container">
             <div class="row g-2">
-                <div class="col-8">
-                    <input type="number" id="idSearch" class="filter-input w-100" placeholder="البحث بـ ID...">
-                </div>
+                <div class="col-8"><input type="number" id="idSearch" class="filter-input w-100" placeholder="البحث برقم الـ ID..."></div>
                 <div class="col-4">
                     <select id="filterType" class="filter-input w-100 fw-bold">
                         <option value="all">الكل</option>
@@ -126,13 +105,12 @@
         <div class="row g-3" id="grid">
             <% accounts.forEach(acc => { %>
             <div class="col-6 col-md-4 col-lg-3 acc-item" data-id="<%= acc.id %>" data-link="<%= acc.linkType %>">
-                <div class="product-card">
-                    <div class="link-badge"><%= acc.linkType %></div>
+                <div class="product-card shadow-sm">
                     <a href="/account/<%= acc.id %>" style="text-decoration: none; color: inherit;">
                         <div class="product-img-box"><img src="<%= acc.imgs[0] %>" loading="lazy"></div>
-                        <div class="product-info">
-                            <span style="font-size:12px; color:var(--primary); font-weight:bold;">#<%= acc.id %></span>
-                            <h6 style="font-size:14px; font-weight:700; height:35px; overflow:hidden;"><%= acc.title %></h6>
+                        <div class="p-3 text-center">
+                            <span class="text-primary fw-bold small">#<%= acc.id %></span>
+                            <h6 class="text-truncate fw-bold my-1"><%= acc.title %></h6>
                             <div class="product-price"><%= acc.priceDZ %> د.ج</div>
                         </div>
                     </a>
@@ -143,37 +121,16 @@
             </div>
             <% }) %>
         </div>
-
-        <div class="mt-5 text-center">
-            <h4 style="font-weight:800; margin-bottom:20px;">الأسئلة الشائعة</h4>
-            <div class="accordion text-start" id="faqAcc" style="max-width:800px; margin:auto;">
-                <% faqs.forEach((faq, i) => { %>
-                <div class="accordion-item mb-2" style="border-radius:10px !important; overflow:hidden;">
-                    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f<%=i%>"><%= faq.question %></button></h2>
-                    <div id="f<%=i%>" class="accordion-collapse collapse" data-bs-parent="#faqAcc"><div class="accordion-body text-muted"><%= faq.answer %></div></div>
-                </div>
-                <% }) %>
-            </div>
-        </div>
     </div>
-
-    <div class="floating-contact">
-        <div class="contact-window" id="contactWin">
-            <div class="window-header">تواصل معنا</div>
-            <a href="#" onclick="openSocial('wa')" class="contact-option" style="color:#25D366;"><i class="fab fa-whatsapp"></i> واتساب</a>
-            <a href="#" onclick="openSocial('tg')" class="contact-option" style="color:#0088cc;"><i class="fab fa-telegram-plane"></i> تلغرام</a>
-        </div>
-        <button class="btn-main-float" onclick="toggleContactWin()"><i class="fas fa-comments"></i></button>
-    </div>
-
-    <footer><p>© WassitDZ Game - جميع الحقوق محفوظة</p></footer>
 
     <script>
-        function toggleContactWin() {
-            const win = document.getElementById('contactWin');
-            win.style.display = (win.style.display === 'block') ? 'none' : 'block';
+        // وظيفة فتح وإغلاق النافذة الجانبية
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
         }
 
+        // وظيفة الفلترة
         function filter() {
             const id = document.getElementById('idSearch').value;
             const type = document.getElementById('filterType').value;
@@ -186,6 +143,7 @@
         document.getElementById('idSearch').oninput = filter;
         document.getElementById('filterType').onchange = filter;
 
+        // وظيفة التواصل
         function contact(id) {
             const link = "<%= settings.buyNowLink %>";
             const msg = encodeURIComponent("سلام عليكم، أريد شراء الحساب رقم: #" + id);
@@ -193,14 +151,6 @@
             else if (link.includes("t.me")) window.open("https://t.me/" + link.split('/').pop() + "?text=" + msg, "_blank");
             else window.open(link, "_blank");
         }
-
-        function openSocial(type) {
-            const link = "<%= settings.buyNowLink %>";
-            const msg = encodeURIComponent("سلام عليكم، لدي استفسار.");
-            if (type === 'wa') window.open((link.includes("wa.me") ? link.split('?')[0] : link) + "?text=" + msg, "_blank");
-            else window.open("https://t.me/" + (link.includes("t.me") ? link.split('/').pop() : "") + "?text=" + msg, "_blank");
-        }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
