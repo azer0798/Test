@@ -57,11 +57,11 @@ app.get('/account/:id', async (req, res) => {
     res.render('product', { account, settings });
 });
 
-// لوحة التحكم
+// لوحة التحكم (إظهار الحسابات والأسئلة)
 app.get('/admin-panel', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     const accounts = await Account.find();
-    const settings = await Settings.findOne();
+    const settings = await Settings.findOne() || {};
     const faqs = await FAQ.find();
     res.render('admin', { accounts, settings, faqs });
 });
@@ -80,12 +80,29 @@ app.post('/add-account', upload.array('imageFiles', 5), async (req, res) => {
     res.redirect('/admin-panel');
 });
 
+// حذف حساب
+app.get('/delete-account/:id', async (req, res) => {
+    if (!req.session.isAdmin) return res.status(403).send("Forbidden");
+    await Account.findOneAndDelete({ id: req.params.id });
+    res.redirect('/admin-panel');
+});
+
+app.post('/add-faq', async (req, res) => {
+    await FAQ.create(req.body);
+    res.redirect('/admin-panel');
+});
+
+app.get('/delete-faq/:id', async (req, res) => {
+    await FAQ.findByIdAndDelete(req.params.id);
+    res.redirect('/admin-panel');
+});
+
 app.get('/login', (req, res) => res.render('login'));
 app.post('/login', (req, res) => {
     if (req.body.username === process.env.ADMIN_USER && req.body.password === process.env.ADMIN_PASS) {
         req.session.isAdmin = true;
         res.redirect('/admin-panel');
-    } else { res.send("Error"); }
+    } else { res.send("خطأ في البيانات"); }
 });
 
 app.listen(process.env.PORT || 3000);
