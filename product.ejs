@@ -11,32 +11,32 @@
         .main-img { width: 100%; border-radius: 15px; cursor: zoom-in; max-height: 500px; object-fit: contain; background: #000; }
         .thumb-img { width: 70px; height: 70px; object-fit: cover; border-radius: 10px; cursor: pointer; margin: 5px; border: 2px solid transparent; }
         .details-box { background: #fff; border-radius: 20px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; height: 100%; }
-        .btn-order { background: var(--primary); color: #fff; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; text-decoration: none; display: block; border: none; }
+        .btn-order { background: var(--primary); color: #fff; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; border: none; }
     </style>
 </head>
 <body>
-    <div class="container mt-4">
-        <a href="/" class="btn btn-outline-dark mb-4">← العودة للمتجر</a>
+    <div class="container mt-4 mb-5">
+        <a href="/" class="btn btn-light mb-4 rounded-pill px-4 shadow-sm">← العودة للمتجر</a>
         <div class="row g-4">
-            <div class="col-md-7">
-                <img src="<%= account.imgs[0] %>" id="main" class="main-img" onclick="this.requestFullscreen()">
-                <div class="d-flex overflow-auto mt-2">
+            <div class="col-md-7 text-center">
+                <img src="<%= account.imgs[0] %>" id="main" class="main-img shadow" onclick="this.requestFullscreen()">
+                <div class="d-flex justify-content-center overflow-auto mt-2">
                     <% account.imgs.forEach(img => { %>
                         <img src="<%= img %>" class="thumb-img shadow-sm" onclick="document.getElementById('main').src='<%= img %>'">
                     <% }) %>
                 </div>
             </div>
             <div class="col-md-5">
-                <div class="details-box">
-                    <div class="d-flex justify-content-between mb-3">
-                        <span class="badge bg-primary px-3"><%= account.linkType %></span>
-                        <h5 class="fw-bold text-primary">#<%= account.id %></h5>
+                <div class="details-box d-flex flex-column justify-content-center">
+                    <div class="d-flex justify-content-between mb-3 align-items-center">
+                        <span class="badge bg-primary px-3 py-2"><%= account.linkType %></span>
+                        <h5 class="fw-bold text-primary m-0">#<%= account.id %></h5>
                     </div>
-                    <h3 class="fw-bold mb-4"><%= account.title %></h3>
-                    <h2 class="text-success fw-bold"><%= account.priceDZ %> د.ج</h2>
+                    <h3 class="fw-bold mb-4 text-dark"><%= account.title %></h3>
+                    <h2 class="text-success fw-bold display-6"><%= account.priceDZ %> د.ج</h2>
                     <p class="text-muted"><%= account.priceUSD %> $</p>
-                    <button onclick="handleContact()" class="btn-order mt-3">اطلب الحساب الآن</button>
-                    <p class="small text-muted mt-3">تمت مشاهدة هذا الحساب <%= account.views %> مرة</p>
+                    <button onclick="handleContact()" class="btn-order mt-3 shadow">اطلب الحساب الآن</button>
+                    <p class="small text-muted mt-3"><i class="fas fa-eye"></i> شاهده <%= account.views %> شخص</p>
                 </div>
             </div>
         </div>
@@ -44,9 +44,13 @@
     <script>
         function handleContact() {
             const link = "<%= settings.buyNowLink %>";
-            const msg = "سلام عليكم، أريد شراء الحساب رقم: #<%= account.id %>";
-            if (link.includes("wa.me")) window.open(link.split('?')[0] + "?text=" + encodeURIComponent(msg), "_blank");
-            else { navigator.clipboard.writeText(msg); alert("تم نسخ رقم الحساب، قم بلصقه في تلغرام"); window.open(link, "_blank"); }
+            const msg = encodeURIComponent("سلام عليكم، أريد شراء الحساب رقم: #<%= account.id %>");
+            if (link.includes("wa.me") || link.includes("whatsapp")) {
+                window.open(link.split('?')[0] + "?text=" + msg, "_blank");
+            } else if (link.includes("t.me")) {
+                const user = link.split('/').pop();
+                window.open("https://t.me/" + user + "?text=" + msg, "_blank");
+            } else { window.open(link, "_blank"); }
         }
     </script>
 </body>
