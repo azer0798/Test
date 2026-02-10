@@ -4,22 +4,21 @@
     <meta charset="UTF-8">
     <title>إدارة WassitDZ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>body { background: #f8fafc; padding: 20px; } .card { border: none; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }</style>
 </head>
 <body>
-<div class="container">
+<div class="container pb-5">
     <div class="card p-4 mb-4">
         <h6 class="fw-bold border-bottom pb-2 mb-3">إعدادات الهوية والروابط</h6>
         <form action="/update-settings" method="POST" class="row g-3 small">
-            <div class="col-md-6"><label>رابط اللوغو (Cloudinary)</label><input type="text" name="logoUrl" class="form-control" value="<%= settings.logoUrl %>"></div>
+            <div class="col-md-6"><label>رابط اللوغو (Logo URL)</label><input type="text" name="logoUrl" class="form-control" value="<%= settings.logoUrl %>"></div>
             <div class="col-md-3"><label>لون الموقع</label><input type="color" name="themeColor" class="form-control form-control-color w-100" value="<%= settings.themeColor %>"></div>
             <div class="col-md-3"><label>نص الإشهار</label><input type="text" name="announcement" class="form-control" value="<%= settings.announcement %>"></div>
             <div class="col-md-3"><label>رابط الشراء</label><input type="text" name="buyNowLink" class="form-control" value="<%= settings.buyNowLink %>"></div>
             <div class="col-md-3"><label>رابط الوساطة</label><input type="text" name="mediationLink" class="form-control" value="<%= settings.mediationLink %>"></div>
             <div class="col-md-3"><label>رابط بيع حساب</label><input type="text" name="sellAccountLink" class="form-control" value="<%= settings.sellAccountLink %>"></div>
             <div class="col-md-3"><label>رابط الدعم</label><input type="text" name="supportLink" class="form-control" value="<%= settings.supportLink %>"></div>
-            <div class="col-12 text-end"><button class="btn btn-dark px-4">حفظ الإعدادات</button></div>
+            <div class="col-12 text-end"><button class="btn btn-dark">حفظ الإعدادات</button></div>
         </form>
     </div>
 
@@ -43,7 +42,7 @@
         </div>
         <div class="col-md-7">
             <div class="card p-4">
-                <h6 class="fw-bold mb-3">إدارة الأسئلة الشائعة</h6>
+                <h6 class="fw-bold mb-3">إدارة الأسئلة الشائعة (FAQ)</h6>
                 <form action="/add-faq" method="POST" class="row g-2 mb-3 small">
                     <div class="col-5"><input type="text" name="question" class="form-control" placeholder="السؤال" required></div>
                     <div class="col-5"><input type="text" name="answer" class="form-control" placeholder="الإجابة" required></div>
@@ -51,7 +50,7 @@
                 </form>
                 <div class="list-group small">
                     <% faqs.forEach(f => { %>
-                    <div class="list-group-item d-flex justify-content-between p-2"><%= f.question %> <a href="/delete-faq/<%= f._id %>" class="text-danger"><i class="fas fa-trash"></i></a></div>
+                    <div class="list-group-item d-flex justify-content-between p-2"><%= f.question %> <a href="/delete-faq/<%= f._id %>" class="text-danger text-decoration-none">حذف</a></div>
                     <% }) %>
                 </div>
             </div>
