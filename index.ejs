@@ -8,26 +8,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --primary: <%= settings.themeColor %>; }
-        body { background: #f8fafc; font-family: 'Segoe UI', sans-serif; padding-top: 45px; }
-        
-        /* شريط الإشعار يتحرك من اليسار لليمين */
-        .announcement-bar { background: #0f172a; color: #fff; height: 45px; line-height: 45px; position: fixed; top: 0; width: 100%; z-index: 2000; text-align: center; overflow: hidden; }
-        
-        /* تنسيق اللوجو في الوسط */
-        .navbar { background: #fff; border-bottom: 2px solid var(--primary); position: sticky; top: 45px; z-index: 1000; height: 100px; }
+        body { background: #f1f5f9; font-family: 'Segoe UI', sans-serif; padding-top: 45px; }
+        .announcement-bar { background: #0f172a; color: #fff; height: 45px; line-height: 45px; position: fixed; top: 0; width: 100%; z-index: 2000; overflow: hidden; }
+        .navbar { background: #fff; border-bottom: 2px solid var(--primary); height: 120px; position: sticky; top: 45px; z-index: 1000; }
         .navbar-brand { position: absolute; left: 50%; transform: translateX(-50%); }
-        .logo-img { height: 100px; width: auto; max-width: 250px; object-fit: contain; }
-
-        .account-card { background: #fff; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; }
-        .price-dz { font-size: 1.4rem; font-weight: 800; color: #10b981; }
-        
-        /* تصغير زر الشراء */
-        .btn-buy { background: var(--primary); color: #fff; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-block; padding: 8px 25px; font-size: 0.9rem; }
-        
-        .link-badge { background: #e2e8f0; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
-        
-        footer { background: #0f172a; color: #94a3b8; padding: 30px 0; margin-top: 50px; text-align: center; }
-        .quick-links .btn { margin: 5px; border-radius: 20px; font-weight: 600; }
+        .logo-img { height: 95px; width: auto; max-width: 280px; object-fit: contain; }
+        .img-container { width: 100%; height: 200px; overflow: hidden; }
+        .img-container img { width: 100%; height: 100%; object-fit: cover; }
+        .account-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.3s; height: 100%; }
+        .price-dz { font-size: 1.2rem; font-weight: 800; color: #10b981; }
+        .price-usd { font-size: 0.9rem; color: #64748b; font-weight: 600; }
+        .btn-buy { background: var(--primary); color: #fff; border-radius: 6px; padding: 5px 15px; font-size: 0.8rem; text-decoration: none; display: inline-block; }
+        .link-badge { background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; }
+        .quick-links .btn { margin: 3px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        footer { background: #0f172a; color: #94a3b8; padding: 25px 0; margin-top: 40px; text-align: center; font-size: 0.85rem; }
     </style>
 </head>
 <body>
@@ -39,45 +33,42 @@
 <nav class="navbar navbar-light bg-light">
     <div class="container d-flex justify-content-center">
         <a class="navbar-brand" href="#">
-            <% if (settings.logoUrl) { %> 
-                <img src="<%= settings.logoUrl %>" class="logo-img" alt="WassitDZ"> 
-            <% } else { %> 
-                <h2 class="fw-bold m-0" style="color: var(--primary)">WassitDZ</h2> 
-            <% } %>
+            <% if (settings.logoUrl) { %> <img src="<%= settings.logoUrl %>" class="logo-img"> <% } else { %> <h2 class="fw-bold m-0" style="color: var(--primary)">WassitDZ</h2> <% } %>
         </a>
     </div>
 </nav>
 
-<div class="container mt-4 text-center quick-links">
-    <a href="<%= settings.mediationLink %>" class="btn btn-outline-primary"><i class="fas fa-handshake"></i> طلب وساطة</a>
+<div class="container mt-3 text-center quick-links">
+    <a href="<%= settings.mediationLink %>" class="btn btn-outline-primary"><i class="fas fa-handshake"></i> الوساطة</a>
     <a href="<%= settings.sellAccountLink %>" class="btn btn-outline-success"><i class="fas fa-tag"></i> بيع حسابك</a>
-    <a href="<%= settings.supportLink %>" class="btn btn-outline-secondary"><i class="fas fa-headset"></i> الدعم الفني</a>
+    <a href="<%= settings.supportLink %>" class="btn btn-outline-secondary"><i class="fas fa-headset"></i> الدعم</a>
 </div>
 
 <div class="container mt-4">
-    <div class="row g-4">
+    <div class="row g-3">
         <% accounts.forEach(acc => { %>
-        <div class="col-md-4">
+        <div class="col-6 col-md-4 col-lg-3">
             <div class="account-card">
-                <img src="<%= acc.imgs[0] %>" class="w-100" style="height: 200px; object-fit: cover;">
-                <div class="p-3 text-center">
-                    <div class="mb-2"><span class="link-badge"><i class="fas fa-link"></i> <%= acc.linkType %></span></div>
-                    <h6 class="fw-bold mb-3"><%= acc.title %></h6>
-                    <div class="price-dz mb-3"><%= acc.priceDZ %> د.ج</div>
-                    <a href="<%= settings.buyNowLink %>" class="btn-buy">شراء الآن</a>
+                <div class="img-container"><img src="<%= acc.imgs[0] %>"></div>
+                <div class="p-2 text-center">
+                    <span class="link-badge"><%= acc.linkType %></span>
+                    <h6 class="fw-bold my-1 small text-truncate"><%= acc.title %></h6>
+                    <div class="price-dz"><%= acc.priceDZ %> د.ج</div>
+                    <div class="price-usd mb-2"><%= acc.priceUSD %> $</div>
+                    <a href="<%= settings.buyNowLink %>" class="btn-buy">شراء</a>
                 </div>
             </div>
         </div>
         <% }) %>
     </div>
 
-    <div class="my-5 pt-4 border-top">
-        <h4 class="fw-bold mb-4 text-center">الأسئلة الشائعة (FAQ)</h4>
-        <div class="accordion shadow-sm" id="faqAcc">
+    <div class="my-5 border-top pt-4">
+        <h5 class="fw-bold mb-3 text-center">الأسئلة الشائعة</h5>
+        <div class="accordion accordion-flush" id="faqAcc">
             <% faqs.forEach((faq, i) => { %>
-            <div class="accordion-item">
-                <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#f<%=i%>"><%= faq.question %></button></h2>
-                <div id="f<%=i%>" class="accordion-collapse collapse" data-bs-parent="#faqAcc"><div class="accordion-body"><%= faq.answer %></div></div>
+            <div class="accordion-item shadow-sm mb-2">
+                <h2 class="accordion-header"><button class="accordion-button collapsed py-2 small" data-bs-toggle="collapse" data-bs-target="#f<%=i%>"><%= faq.question %></button></h2>
+                <div id="f<%=i%>" class="accordion-collapse collapse" data-bs-parent="#faqAcc"><div class="accordion-body small text-muted"><%= faq.answer %></div></div>
             </div>
             <% }) %>
         </div>
@@ -86,8 +77,8 @@
 
 <footer>
     <div class="container">
-        <p class="mb-1">© <%= new Date().getFullYear() %> WassitDZ Game - متجر بيع حسابات eFootball</p>
-        <p class="small">جميع الحقوق محفوظة. نضمن لك السرعة والأمان في كل معاملة.</p>
+        <p class="mb-0">© <%= new Date().getFullYear() %> WassitDZ Game - جميع الحقوق محفوظة</p>
+        <p class="small opacity-50">أمان . سرعة . موثوقية</p>
     </div>
 </footer>
 
