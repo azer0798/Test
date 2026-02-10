@@ -2,60 +2,81 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إدارة WassitDZ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WassitDZ Game | المتجر الرسمي</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <style>body { background: #f8fafc; padding: 20px; } .card { border: none; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: <%= settings.themeColor %>; }
+        body { background: #f4f7f9; font-family: 'Segoe UI', sans-serif; padding-top: 45px; }
+        .announcement-bar { background: #0f172a; color: #fff; height: 45px; line-height: 45px; position: fixed; top: 0; width: 100%; z-index: 2000; overflow: hidden; }
+        .navbar { background: #fff; height: 160px; border-bottom: 4px solid var(--primary); display: flex; align-items: center; justify-content: center; }
+        .logo-img { max-height: 130px; }
+        .account-card { background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); height: 100%; transition: 0.3s; border: none; }
+        .account-card:hover { transform: translateY(-5px); }
+        .img-container { width: 100%; height: 200px; overflow: hidden; }
+        .img-container img { width: 100%; height: 100%; object-fit: cover; }
+        .price-dz { font-size: 1.3rem; font-weight: 800; color: #10b981; }
+        .btn-buy { background: #000; color: #fff; width: 100%; border-radius: 12px; padding: 8px; font-weight: bold; text-decoration: none; display: block; text-align: center; }
+        .quick-links .btn { margin: 5px; border-radius: 10px; font-weight: 600; font-size: 0.9rem; }
+        footer { background: #0f172a; color: #fff; padding: 25px 0; margin-top: 50px; text-align: center; }
+    </style>
 </head>
 <body>
-<div class="container pb-5">
-    <div class="card p-4 mb-4">
-        <h6 class="fw-bold border-bottom pb-2 mb-3">إعدادات الهوية والروابط</h6>
-        <form action="/update-settings" method="POST" class="row g-3 small">
-            <div class="col-md-6"><label>رابط اللوغو (Logo URL)</label><input type="text" name="logoUrl" class="form-control" value="<%= settings.logoUrl %>"></div>
-            <div class="col-md-3"><label>لون الموقع</label><input type="color" name="themeColor" class="form-control form-control-color w-100" value="<%= settings.themeColor %>"></div>
-            <div class="col-md-3"><label>نص الإشهار</label><input type="text" name="announcement" class="form-control" value="<%= settings.announcement %>"></div>
-            <div class="col-md-3"><label>رابط الشراء</label><input type="text" name="buyNowLink" class="form-control" value="<%= settings.buyNowLink %>"></div>
-            <div class="col-md-3"><label>رابط الوساطة</label><input type="text" name="mediationLink" class="form-control" value="<%= settings.mediationLink %>"></div>
-            <div class="col-md-3"><label>رابط بيع حساب</label><input type="text" name="sellAccountLink" class="form-control" value="<%= settings.sellAccountLink %>"></div>
-            <div class="col-md-3"><label>رابط الدعم</label><input type="text" name="supportLink" class="form-control" value="<%= settings.supportLink %>"></div>
-            <div class="col-12 text-end"><button class="btn btn-dark">حفظ الإعدادات</button></div>
-        </form>
-    </div>
 
-    <div class="row">
-        <div class="col-md-5">
-            <div class="card p-4 mb-3">
-                <h6 class="fw-bold mb-3">نشر حساب جديد</h6>
-                <form action="/add-account" method="POST" enctype="multipart/form-data" class="small">
-                    <input type="text" name="title" class="form-control mb-2" placeholder="العنوان" required>
-                    <div class="row g-2 mb-2">
-                        <div class="col-6"><input type="text" name="priceDZ" class="form-control" placeholder="السعر د.ج" required></div>
-                        <div class="col-6"><input type="text" name="priceUSD" class="form-control" placeholder="السعر $" required></div>
+<div class="announcement-bar">
+    <marquee direction="right">⚡ <%= settings.announcement %> ⚡</marquee>
+</div>
+
+<nav class="navbar">
+    <a href="/"><img src="<%= settings.logoUrl %>" class="logo-img"></a>
+</nav>
+
+<div class="container mt-3 text-center quick-links">
+    <a href="<%= settings.mediationLink %>" class="btn btn-outline-primary">الوساطة</a>
+    <a href="<%= settings.sellAccountLink %>" class="btn btn-outline-success">بيع حسابك</a>
+    <a href="<%= settings.supportLink %>" class="btn btn-outline-secondary">الدعم الفني</a>
+</div>
+
+<div class="container mt-4">
+    <div class="row g-3">
+        <% accounts.forEach(acc => { %>
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="account-card">
+                <a href="/account/<%= acc.id %>" style="text-decoration: none; color: inherit;">
+                    <div class="img-container"><img src="<%= acc.imgs[0] %>"></div>
+                    <div class="p-3 text-center">
+                        <span class="badge bg-light text-dark mb-2"><%= acc.linkType %></span>
+                        <h6 class="fw-bold text-truncate"><%= acc.title %></h6>
+                        <div class="price-dz"><%= acc.priceDZ %> د.ج</div>
+                        <div class="text-muted small mb-2"><%= acc.priceUSD %> $</div>
                     </div>
-                    <select name="linkType" class="form-select mb-2">
-                        <option>Konami ID</option><option>Google Play</option><option>غير مربوط</option>
-                    </select>
-                    <input type="file" name="imageFiles" class="form-control mb-3" multiple required>
-                    <button class="btn btn-primary w-100 fw-bold">نشر الحساب</button>
-                </form>
+                </a>
+                <div class="px-3 pb-3"><a href="<%= settings.buyNowLink %>" class="btn-buy">شراء الآن</a></div>
             </div>
         </div>
-        <div class="col-md-7">
-            <div class="card p-4">
-                <h6 class="fw-bold mb-3">إدارة الأسئلة الشائعة (FAQ)</h6>
-                <form action="/add-faq" method="POST" class="row g-2 mb-3 small">
-                    <div class="col-5"><input type="text" name="question" class="form-control" placeholder="السؤال" required></div>
-                    <div class="col-5"><input type="text" name="answer" class="form-control" placeholder="الإجابة" required></div>
-                    <div class="col-2"><button class="btn btn-success w-100">أضف</button></div>
-                </form>
-                <div class="list-group small">
-                    <% faqs.forEach(f => { %>
-                    <div class="list-group-item d-flex justify-content-between p-2"><%= f.question %> <a href="/delete-faq/<%= f._id %>" class="text-danger text-decoration-none">حذف</a></div>
-                    <% }) %>
-                </div>
+        <% }) %>
+    </div>
+
+    <div class="my-5 pt-4 border-top">
+        <h4 class="fw-bold mb-4 text-center">الأسئلة الشائعة</h4>
+        <div class="accordion shadow-sm" id="faqAcc">
+            <% faqs.forEach((faq, i) => { %>
+            <div class="accordion-item">
+                <h2 class="accordion-header"><button class="accordion-button collapsed py-2" data-bs-toggle="collapse" data-bs-target="#f<%=i%>"><%= faq.question %></button></h2>
+                <div id="f<%=i%>" class="accordion-collapse collapse" data-bs-parent="#faqAcc"><div class="accordion-body small text-muted"><%= faq.answer %></div></div>
             </div>
+            <% }) %>
         </div>
     </div>
 </div>
+
+<footer>
+    <div class="container">
+        <p class="mb-0 small">© <%= new Date().getFullYear() %> WassitDZ Game - جميع الحقوق محفوظة</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
