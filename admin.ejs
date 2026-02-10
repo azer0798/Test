@@ -1,83 +1,14 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>لوحة التحكم | WassitDZ</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>body { background: #f8fafc; padding: 20px; } .card { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }</style>
-</head>
-<body>
-<div class="container">
-    <div class="card p-4 mb-4">
-        <h5 class="fw-bold mb-3 border-bottom pb-2">الإعدادات العامة</h5>
-        <form action="/update-settings" method="POST" class="row g-3">
-            <div class="col-md-6"><label>رابط اللوغو</label><input type="text" name="logoUrl" class="form-control" value="<%= settings.logoUrl %>"></div>
-            <div class="col-md-3"><label>لون الموقع</label><input type="color" name="themeColor" class="form-control form-control-color w-100" value="<%= settings.themeColor %>"></div>
-            <div class="col-md-3"><label>نص الإشهار</label><input type="text" name="announcement" class="form-control" value="<%= settings.announcement %>"></div>
-            <div class="col-md-3"><label>رابط الشراء</label><input type="text" name="buyNowLink" class="form-control" value="<%= settings.buyNowLink %>"></div>
-            <div class="col-md-3"><label>رابط الوساطة</label><input type="text" name="mediationLink" class="form-control" value="<%= settings.mediationLink %>"></div>
-            <div class="col-md-3"><label>رابط بيع حساب</label><input type="text" name="sellAccountLink" class="form-control" value="<%= settings.sellAccountLink %>"></div>
-            <div class="col-md-3"><label>رابط الدعم</label><input type="text" name="supportLink" class="form-control" value="<%= settings.supportLink %>"></div>
-            <div class="col-12 text-end"><button class="btn btn-dark">حفظ التغييرات</button></div>
-        </form>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card p-4 mb-4">
-                <h6 class="fw-bold mb-3">نشر حساب جديد</h6>
-                <form action="/add-account" method="POST" enctype="multipart/form-data">
-                    <input type="text" name="title" class="form-control mb-2" placeholder="العنوان" required>
-                    <div class="row g-2 mb-2">
-                        <div class="col-6"><input type="text" name="priceDZ" class="form-control" placeholder="السعر د.ج" required></div>
-                        <div class="col-6"><input type="text" name="priceUSD" class="form-control" placeholder="السعر $" required></div>
-                    </div>
-                    <select name="linkType" class="form-select mb-2">
-                        <option>Konami ID</option><option>Google Play</option><option>غير مربوط</option>
-                    </select>
-                    <input type="file" name="imageFiles" class="form-control mb-3" multiple required>
-                    <button class="btn btn-primary w-100 fw-bold">نشر الحساب</button>
-                </form>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card p-4 mb-4">
-                <h6 class="fw-bold mb-3">الحسابات المنشورة</h6>
-                <div class="table-responsive" style="max-height: 300px;">
-                    <table class="table table-sm">
-                        <tbody>
-                            <% accounts.forEach(acc => { %>
-                            <tr>
-                                <td><img src="<%= acc.imgs[0] %>" width="40" height="40" style="object-fit: cover; border-radius: 5px;"></td>
-                                <td class="small"><%= acc.title %></td>
-                                <td><a href="/delete-account/<%= acc.id %>" class="text-danger" onclick="return confirm('حذف الحساب؟')"><i class="fas fa-trash"></i></a></td>
-                            </tr>
-                            <% }) %>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card p-4">
-        <h6 class="fw-bold mb-3">إدارة الأسئلة الشائعة</h6>
-        <form action="/add-faq" method="POST" class="row g-2 mb-3">
-            <div class="col-5"><input type="text" name="question" class="form-control" placeholder="السؤال" required></div>
-            <div class="col-5"><input type="text" name="answer" class="form-control" placeholder="الإجابة" required></div>
-            <div class="col-2"><button class="btn btn-success w-100">أضف</button></div>
-        </form>
-        <div class="list-group small">
-            <% faqs.forEach(f => { %>
-            <div class="list-group-item d-flex justify-content-between">
-                <%= f.question %>
-                <a href="/delete-faq/<%= f._id %>" class="text-danger">حذف</a>
-            </div>
-            <% }) %>
-        </div>
-    </div>
-</div>
-</body>
-</html>
+<tbody>
+    <% accounts.forEach(acc => { %>
+    <tr>
+        <td class="fw-bold">#<%= acc.id %></td>
+        <td><img src="<%= acc.imgs[0] %>" width="40" height="40" style="object-fit: cover; border-radius: 5px;"></td>
+        <td class="small"><%= acc.title %></td>
+        <td><span class="badge <%= acc.status === 'متاح' ? 'bg-success' : 'bg-danger' %>"><%= acc.status %></span></td>
+        <td>
+            <a href="/toggle-status/<%= acc.id %>" class="btn btn-sm btn-dark"><i class="fas fa-sync"></i></a>
+            <a href="/delete-account/<%= acc.id %>" class="text-danger ms-2" onclick="return confirm('حذف؟')"><i class="fas fa-trash"></i></a>
+        </td>
+    </tr>
+    <% }) %>
+</tbody>
