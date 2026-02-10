@@ -42,25 +42,25 @@ app.use(session({ secret: 'wassit_secure_key', resave: false, saveUninitialized:
 app.set('view engine', 'ejs');
 app.set('views', __dirname);
 
-const cleanText = (t) => typeof t === 'string' ? t.replace(/[^\x20-\x7E\u0600-\u06FF]/g, '').trim() : t;
-
-// --- Routes ---
-
+// Routes
 app.get('/', async (req, res) => {
-    const accounts = await Account.find().sort({ id: -1 });
-    const faqs = await FAQ.find();
-    const settings = await Settings.findOne() || {};
-    res.render('index', { accounts, settings, faqs });
+    try {
+        const accounts = await Account.find().sort({ id: -1 });
+        const faqs = await FAQ.find();
+        const settings = await Settings.findOne() || {};
+        res.render('index', { accounts, settings, faqs });
+    } catch (err) { res.status(500).send("Error"); }
 });
 
 app.get('/account/:id', async (req, res) => {
-    const account = await Account.findOneAndUpdate({ id: req.params.id }, { $inc: { views: 1 } }, { new: true });
-    const settings = await Settings.findOne();
-    if (!account) return res.redirect('/');
-    res.render('product', { account, settings });
+    try {
+        const account = await Account.findOneAndUpdate({ id: req.params.id }, { $inc: { views: 1 } }, { new: true });
+        const settings = await Settings.findOne() || {};
+        if (!account) return res.redirect('/');
+        res.render('product', { account, settings });
+    } catch (err) { res.redirect('/'); }
 });
 
-// Admin Panel Data Fetch
 app.get('/admin-panel', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/login');
     const accounts = await Account.find().sort({ id: -1 });
@@ -69,7 +69,6 @@ app.get('/admin-panel', async (req, res) => {
     res.render('admin', { accounts, settings, faqs });
 });
 
-// Accounts Management
 app.post('/add-account', upload.array('imageFiles', 5), async (req, res) => {
     const lastAcc = await Account.findOne().sort({ id: -1 });
     const newId = lastAcc ? lastAcc.id + 1 : 1;
@@ -78,42 +77,27 @@ app.post('/add-account', upload.array('imageFiles', 5), async (req, res) => {
 });
 
 app.get('/toggle-status/:id', async (req, res) => {
-    if (!req.session.isAdmin) return res.status(403).send("Forbidden");
     const acc = await Account.findOne({ id: req.params.id });
-    acc.status = acc.status === 'متاح' ? 'تم البيع' : 'متاح';
-    await acc.save();
+    if(acc) {
+        acc.status = acc.status === 'متاح' ? 'تم البيع' : 'متاح';
+        await acc.save();
+    }
     res.redirect('/admin-panel');
 });
 
 app.get('/delete-account/:id', async (req, res) => {
-    if (!req.session.isAdmin) return res.status(403).send("Forbidden");
     await Account.findOneAndDelete({ id: req.params.id });
     res.redirect('/admin-panel');
 });
 
-// FAQ Management
-app.post('/add-faq', async (req, res) => {
-    if (!req.session.isAdmin) return res.status(403).send("Forbidden");
-    await FAQ.create(req.body);
-    res.redirect('/admin-panel');
-});
-
-app.get('/delete-faq/:id', async (req, res) => {
-    if (!req.session.isAdmin) return res.status(403).send("Forbidden");
-    await FAQ.findByIdAndDelete(req.params.id);
-    res.redirect('/admin-panel');
-});
-
-// Settings Update
 app.post('/update-settings', async (req, res) => {
-    if (!req.session.isAdmin) return res.status(403).send("Forbidden");
-    let data = { ...req.body };
-    for (let key in data) data[key] = cleanText(data[key]);
-    await Settings.findOneAndUpdate({}, data, { upsert: true });
+    await Settings.findOneAndUpdate({}, req.body, { upsert: true });
     res.redirect('/admin-panel');
 });
 
-// Login
+app.post('/add-faq', async (req, res) => { await FAQ.create(req.body); res.redirect('/admin-panel'); });
+app.get('/delete-faq/:id', async (req, res) => { await FAQ.findByIdAndDelete(req.params.id); res.redirect('/admin-panel'); });
+
 app.get('/login', (req, res) => res.render('login'));
 app.post('/login', (req, res) => {
     if (req.body.username === process.env.ADMIN_USER && req.body.password === process.env.ADMIN_PASS) {
