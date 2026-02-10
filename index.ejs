@@ -7,49 +7,42 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: <%= settings.themeColor %>; --bg: #f4f7f9; --card: #fff; --text: #000; }
-        [data-theme="dark"] { --bg: #0f172a; --card: #1e293b; --text: #fff; }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; transition: 0.3s; padding-top: 45px; }
+        :root { --primary: <%= settings.themeColor %>; }
+        body { background: #f4f7f9; font-family: 'Segoe UI', sans-serif; padding-top: 45px; }
         .announcement-bar { background: #0f172a; color: #fff; height: 45px; line-height: 45px; position: fixed; top: 0; width: 100%; z-index: 2000; overflow: hidden; }
-        .navbar { background: var(--card); border-bottom: 4px solid var(--primary); height: 160px; display: flex; align-items: center; justify-content: center; }
-        .account-card { background: var(--card); border-radius: 20px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); position: relative; height: 100%; border: none; }
+        .navbar { background: #fff; border-bottom: 4px solid var(--primary); height: 160px; display: flex; align-items: center; justify-content: center; }
+        .account-card { background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: relative; height: 100%; border: none; }
         .img-container { height: 180px; position: relative; overflow: hidden; }
         .img-container img { width: 100%; height: 100%; object-fit: cover; }
         .price-dz { font-size: 1.3rem; font-weight: 800; color: #10b981; }
         .btn-buy { background: #000; color: #fff; width: 100%; border-radius: 12px; padding: 10px; font-weight: bold; text-decoration: none; display: block; text-align: center; }
-        .theme-toggle { position: fixed; bottom: 20px; right: 20px; z-index: 3000; width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: #fff; border: none; }
-        #sale-notif { position: fixed; bottom: 80px; left: 20px; background: var(--card); border-right: 5px solid #10b981; padding: 10px 15px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); display: none; z-index: 4000; }
     </style>
 </head>
-<body data-theme="light">
-    <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
-    <div id="sale-notif"></div>
+<body>
 
     <div class="announcement-bar"><marquee direction="right">⚡ <%= settings.announcement %> ⚡</marquee></div>
 
     <nav class="navbar"><img src="<%= settings.logoUrl %>" style="max-height: 120px;"></nav>
 
-    <div class="container mt-3 text-center">
-        <a href="<%= settings.mediationLink %>" class="btn btn-outline-primary m-1 px-4">الوساطة</a>
-        <a href="<%= settings.sellAccountLink %>" class="btn btn-outline-success m-1 px-4">بيع حسابك</a>
-        <a href="<%= settings.supportLink %>" class="btn btn-outline-secondary m-1 px-4">الدعم</a>
-    </div>
-
-    <div class="container mt-4">
+    <div class="container mt-4 text-center">
         <div class="row g-2 mb-4">
             <div class="col-8"><input type="number" id="idSearch" class="form-control" placeholder="🔍 ابحث برقم الحساب..."></div>
-            <div class="col-4"><select id="filterType" class="form-select"><option value="all">الكل</option><option>Konami ID</option><option>Google Play</option></select></div>
+            <div class="col-4">
+                <select id="filterType" class="form-select">
+                    <option value="all">الكل</option>
+                    <option value="Konami ID">Konami ID</option>
+                    <option value="Google Play">Google Play</option>
+                </select>
+            </div>
         </div>
 
         <div class="row g-3" id="grid">
             <% accounts.forEach(acc => { %>
             <div class="col-6 col-md-4 col-lg-3 acc-item" data-id="<%= acc.id %>" data-link="<%= acc.linkType %>">
                 <div class="account-card">
-                    <% if(acc.status === 'تم البيع') { %><div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:5;display:flex;align-items:center;justify-content:center;"><span class="badge bg-danger">تم البيع</span></div><% } %>
                     <a href="/account/<%= acc.id %>" style="text-decoration: none; color: inherit;">
                         <div class="img-container">
                             <img src="<%= acc.imgs[0] %>" loading="lazy">
-                            <span style="position:absolute; bottom:5px; left:5px; background:rgba(0,0,0,0.5); color:#fff; font-size:10px; padding:2px 6px; border-radius:10px;"><i class="fas fa-eye"></i> <%= acc.views %></span>
                         </div>
                         <div class="p-3 text-center">
                             <div class="d-flex justify-content-between align-items-center mb-1">
@@ -67,16 +60,32 @@
             </div>
             <% }) %>
         </div>
+
+        <div class="my-5 pt-4 border-top">
+            <h4 class="fw-bold mb-4 text-center">الأسئلة الشائعة</h4>
+            <div class="accordion" id="faqAcc">
+                <% faqs.forEach((faq, i) => { %>
+                <div class="accordion-item shadow-sm mb-2 border-0" style="border-radius: 10px; overflow: hidden;">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-3 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#f<%=i%>">
+                            <%= faq.question %>
+                        </button>
+                    </h2>
+                    <div id="f<%=i%>" class="accordion-collapse collapse" data-bs-parent="#faqAcc">
+                        <div class="accordion-body text-muted"><%= faq.answer %></div>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+        </div>
     </div>
 
-    <script>
-        function toggleTheme() {
-            const b = document.body;
-            const isDark = b.getAttribute('data-theme') === 'dark';
-            b.setAttribute('data-theme', isDark ? 'light' : 'dark');
-            document.querySelector('.theme-toggle i').className = isDark ? 'fas fa-moon' : 'fas fa-sun';
-        }
+    <footer class="py-4 text-center text-muted border-top mt-5">
+        <p class="mb-0 small">WassitDZ Game - جميع الحقوق محفوظة</p>
+    </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
         function filter() {
             const id = document.getElementById('idSearch').value;
             const type = document.getElementById('filterType').value;
@@ -93,16 +102,12 @@
             const link = "<%= settings.buyNowLink %>";
             const msg = "سلام عليكم، أريد شراء الحساب رقم: #" + id;
             if (link.includes("wa.me")) window.open(link + "?text=" + encodeURIComponent(msg), "_blank");
-            else { navigator.clipboard.writeText(msg); alert("تم نسخ رقم الحساب، قم بلصقه في تلغرام"); window.open(link, "_blank"); }
+            else { 
+                navigator.clipboard.writeText(msg); 
+                alert("تم نسخ رقم الحساب، قم بلصقه في تلغرام"); 
+                window.open(link, "_blank"); 
+            }
         }
-
-        const cities = ["وهران", "الجزائر", "سطيف", "عنابة", "الشلف"];
-        setInterval(() => {
-            const notif = document.getElementById('sale-notif');
-            notif.innerHTML = `✅ مبروك لزبون من <b>${cities[Math.floor(Math.random()*cities.length)]}</b> شراء حساب جديد!`;
-            notif.style.display = 'block';
-            setTimeout(() => notif.style.display = 'none', 5000);
-        }, 45000);
     </script>
 </body>
 </html>
