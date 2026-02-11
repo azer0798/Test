@@ -106,3 +106,22 @@ app.post('/login', (req, res) => {
 });
 
 app.listen(process.env.PORT || 3000);
+const axios = require('axios');
+
+// ميزة Ping التلقائي لمنع خمول السيرفر
+const startPinging = () => {
+  // استبدل الرابط أدناه برابط موقعك الحقيقي على الاستضافة
+  const URL = `https://${process.env.RENDER_EXTERNAL_HOSTNAME || 'wassitdz-game.onrender.com'}`; 
+
+  setInterval(async () => {
+    try {
+      await axios.get(URL);
+      console.log('⚡ Ping successful: Keep-alive active');
+    } catch (error) {
+      console.error('❌ Ping failed:', error.message);
+    }
+  }, 600000); // يقوم بعمل Ping كل 10 دقائق (600,000 مللي ثانية)
+};
+
+// تشغيل الميزة عند بدء السيرفر
+startPinging();
