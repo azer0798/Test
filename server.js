@@ -3,50 +3,47 @@ const axios = require('axios');
 const path = require('path');
 const app = express();
 
+// إعداد السيرفر ليبحث عن الملفات في المجلد الرئيسي (Root)
 app.set('view engine', 'ejs');
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
+app.set('views', __dirname); // هنا أخبرناه أن الملفات موجودة بجانب server.js مباشرة
 
-// --- التأكد من تعريف المصفوفات لتجنب خطأ الـ Render ---
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname)); // لجعل الصور والملفات الأخرى قابلة للوصول
+
+// البيانات الافتراضية
 let settings = {
     themeColor: '#007bff',
     logoUrl: 'https://res.cloudinary.com/dyaiiu0if/image/upload/v1770741343/1770741239456_kabqtl.png',
     announcement: 'مرحباً بكم في WassitDZ',
     buyNowLink: 'https://wa.me/213xxxxxxxxx',
-    mediationLink: '#',
-    sellAccountLink: '#',
-    supportLink: '#'
+    mediationLink: '#', sellAccountLink: '#', supportLink: '#'
 };
 let accounts = []; 
-let faqs = [];     
+let faqs = [];
 
-// --- نظام الحماية الذكي ---
-
-// 1. تحويل مسار /login القديم إلى صفحة الحظر (للتمويه)
+// --- نظام الحماية والتمويه ---
+// أي شخص يدخل على رابط login القديم ستظهر له صفحة blocked.ejs
 app.get('/login', (req, res) => {
     const userIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     res.status(403).render('blocked', { userIp });
 });
 
-// 2. مسار الإدارة الجديد مع المفتاح السري
 app.get('/admin', (req, res) => {
-    const SECRET_KEY = "Wassit2026"; 
+    const SECRET_KEY = "Wassit2026";
     const userKey = req.query.key;
     const userIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
     if (userKey === SECRET_KEY) {
-        // تأكد من تمرير كل المتغيرات التي تحتاجها صفحة admin.ejs
         res.render('admin', { accounts, settings, faqs });
     } else {
+        // سيظهر ملف blocked.ejs الموجود في المجلد الرئيسي
         res.status(403).render('blocked', { userIp });
     }
 });
 
-// --- المسارات الأساسية ---
-
+// المسار الرئيسي (سيفتح index.ejs من المجلد الرئيسي)
 app.get('/', (req, res) => {
-    // تمرير المصفوفات حتى لو كانت فارغة لمنع خطأ process_params
-    res.render('index', { accounts: accounts || [], settings, faqs: faqs || [] });
+    res.render('index', { accounts, settings, faqs });
 });
 
 app.get('/account/:id', (req, res) => {
@@ -58,21 +55,18 @@ app.get('/account/:id', (req, res) => {
     }
 });
 
-// --- ميزة Ping التلقائي لـ Render ---
+// --- ميزة البقاء نشطاً (Ping) لـ Render ---
 const startPinging = () => {
-    const siteUrl = "https://test-1dba.onrender.com";
     setInterval(async () => {
         try {
-            await axios.get(siteUrl);
-            console.log('⚡ Ping successful');
-        } catch (error) {
-            console.error('❌ Ping failed');
-        }
+            await axios.get("https://test-1dba.onrender.com");
+            console.log('⚡ Ping Active');
+        } catch (e) { console.log('❌ Ping Fail'); }
     }, 600000); 
 };
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🚀 Server on port ${PORT}`);
+    console.log(`🚀 السيرفر يعمل الآن`);
     startPinging();
 });
