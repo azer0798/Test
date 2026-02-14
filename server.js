@@ -11,10 +11,9 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// الاتصال بقاعدة البيانات
+// اتصال قاعدة البيانات
 mongoose.connect(process.env.MONGO_URI).then(() => console.log("✅ Database Connected"));
 
-// إعدادات Cloudinary
 cloudinary.config({ 
     cloud_name: process.env.CLOUDINARY_NAME, 
     api_key: process.env.CLOUDINARY_KEY, 
@@ -27,43 +26,38 @@ const storage = new CloudinaryStorage({
 });
 const upload = multer({ storage: storage });
 
-// --- Models ---
+// النماذج (Models)
 const Account = mongoose.model('Account', new mongoose.Schema({
     id: Number, title: String, priceUSD: String, priceDZ: String, 
     linkType: String, imgs: [String], status: { type: String, default: 'متاح' },
     views: { type: Number, default: 0 }
 }));
-
 const Settings = mongoose.model('Settings', new mongoose.Schema({
     supportLink: String, mediationLink: String, sellAccountLink: String,
     buyNowLink: String, announcement: String, themeColor: String, logoUrl: String
 }));
-
 const FAQ = mongoose.model('FAQ', new mongoose.Schema({ question: String, answer: String }));
 
 app.use(session({ secret: 'wassit_secure_key', resave: false, saveUninitialized: true }));
 app.set('view engine', 'ejs');
 app.set('views', __dirname);
 
-// جلب الـ IP للتحذير
 const getIp = (req) => req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
-// --- Routes ---
+// --- نظام الحماية والتمويه ---
 
-// 1. تضليل الروابط المكشوفة
+// حظر المسارات التقليدية
 app.get('/login', (req, res) => res.status(403).render('blocked', { userIp: getIp(req) }));
 app.get('/admin', (req, res) => res.status(403).render('blocked', { userIp: getIp(req) }));
 
-// 2. المسار الحقيقي للإدارة (مع المفتاح السري)
+// الدخول للوحة التحكم حصراً عبر الرابط السري
 app.get('/admin-panel', async (req, res) => {
-    const secretKey = process.env.ADMIN_KEY;
-    if (req.query.key !== secretKey) {
+    // التحقق من المفتاح السري في الرابط
+    if (req.query.key !== process.env.ADMIN_KEY) {
         return res.status(403).render('blocked', { userIp: getIp(req) });
     }
-
-    if (!req.session.isAdmin) {
-        return res.render('login'); 
-    }
+    // إذا لم يكن مسجلاً، يظهر صفحة اللوجن
+    if (!req.session.isAdmin) return res.render('login');
 
     const accounts = await Account.find().sort({ id: -1 });
     const settings = await Settings.findOne() || {};
@@ -71,16 +65,17 @@ app.get('/admin-panel', async (req, res) => {
     res.render('admin', { accounts, settings, faqs });
 });
 
-// 3. معالجة تسجيل الدخول (المسار الجديد لتجنب خطأ POST)
-app.post('/login-auth', (req, res) => {
+// معالجة تسجيل الدخول - المسار المستهدف في الفورم
+app.post('/auth-admin', (req, res) => {
     if (req.body.username === process.env.ADMIN_USER && req.body.password === process.env.ADMIN_PASS) {
         req.session.isAdmin = true; 
         res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`);
     } else {
-        res.send("خطأ في البيانات، يرجى العودة والمحاولة مرة أخرى.");
+        res.status(401).send("بيانات الدخول غير صحيحة");
     }
 });
 
+// --- المسارات العامة ---
 app.get('/', async (req, res) => {
     try {
         const accounts = await Account.find().sort({ id: -1 });
@@ -99,7 +94,7 @@ app.get('/account/:id', async (req, res) => {
     } catch (err) { res.redirect('/'); }
 });
 
-// عمليات الأدمن (مع الحفاظ على المفتاح السري في الروابط)
+// عمليات الإدارة
 app.post('/add-account', upload.array('imageFiles', 5), async (req, res) => {
     const lastAcc = await Account.findOne().sort({ id: -1 });
     const newId = lastAcc ? lastAcc.id + 1 : 1;
@@ -126,13 +121,10 @@ app.post('/update-settings', async (req, res) => {
 app.post('/add-faq', async (req, res) => { await FAQ.create(req.body); res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`); });
 app.get('/delete-faq/:id', async (req, res) => { await FAQ.findByIdAndDelete(req.params.id); res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`); });
 
-// --- ميزة الـ Ping التلقائي ---
+// ميزة الـ Ping
 const startPinging = () => {
     setInterval(async () => {
-        try {
-            await axios.get("https://test-1dba.onrender.com");
-            console.log('⚡ Ping Active');
-        } catch (e) { console.log('❌ Ping Fail'); }
+        try { await axios.get("https://test-1dba.onrender.com"); } catch (e) {}
     }, 600000); 
 };
 
