@@ -3,48 +3,52 @@ const axios = require('axios');
 const path = require('path');
 const app = express();
 
-// إعداد المحرك وتنسيقات البيانات
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// --- بيانات الموقع (يفضل لاحقاً ربطها بملف JSON أو قاعدة بيانات) ---
+// --- التأكد من تعريف المصفوفات لتجنب خطأ الـ Render ---
 let settings = {
     themeColor: '#007bff',
     logoUrl: 'https://res.cloudinary.com/dyaiiu0if/image/upload/v1770741343/1770741239456_kabqtl.png',
-    announcement: 'مرحباً بكم في WassitDZ - المتجر الأول لبيع حسابات الألعاب في الجزائر',
-    buyNowLink: 'https://wa.me/213xxxxxxxxx', // ضع رابط الواتساب أو التلغرام هنا
+    announcement: 'مرحباً بكم في WassitDZ',
+    buyNowLink: 'https://wa.me/213xxxxxxxxx',
     mediationLink: '#',
     sellAccountLink: '#',
     supportLink: '#'
 };
+let accounts = []; 
+let faqs = [];     
 
-let accounts = []; // مصفوفة الحسابات
-let faqs = [];     // مصفوفة الأسئلة الشائعة
+// --- نظام الحماية الذكي ---
 
-// --- 1. ميزة التمويه الأمني (صفحة الحظر الوهمية) ---
+// 1. تحويل مسار /login القديم إلى صفحة الحظر (للتمويه)
+app.get('/login', (req, res) => {
+    const userIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    res.status(403).render('blocked', { userIp });
+});
+
+// 2. مسار الإدارة الجديد مع المفتاح السري
 app.get('/admin', (req, res) => {
-    const SECRET_KEY = "Wassit2026"; // الكلمة السرية للدخول
+    const SECRET_KEY = "Wassit2026"; 
     const userKey = req.query.key;
     const userIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
     if (userKey === SECRET_KEY) {
-        // إذا كان المفتاح صحيحاً، افتح لوحة التحكم
+        // تأكد من تمرير كل المتغيرات التي تحتاجها صفحة admin.ejs
         res.render('admin', { accounts, settings, faqs });
     } else {
-        // إذا حاول أي شخص الدخول بدون المفتاح، تظهر له صفحة الحظر (blocked.ejs)
         res.status(403).render('blocked', { userIp });
     }
 });
 
-// --- 2. المسارات الأساسية للمتجر ---
+// --- المسارات الأساسية ---
 
-// الصفحة الرئيسية
 app.get('/', (req, res) => {
-    res.render('index', { accounts, settings, faqs });
+    // تمرير المصفوفات حتى لو كانت فارغة لمنع خطأ process_params
+    res.render('index', { accounts: accounts || [], settings, faqs: faqs || [] });
 });
 
-// صفحة تفاصيل المنتج (الحساب)
 app.get('/account/:id', (req, res) => {
     const account = accounts.find(a => a.id == req.params.id);
     if (account) {
@@ -54,31 +58,21 @@ app.get('/account/:id', (req, res) => {
     }
 });
 
-// --- 3. ميزة Ping التلقائي (Keep-Alive) لمنع "نوم" السيرفر على Render ---
+// --- ميزة Ping التلقائي لـ Render ---
 const startPinging = () => {
-    const siteUrl = "https://test-1dba.onrender.com"; // رابط موقعك الذي زودتني به
-    
+    const siteUrl = "https://test-1dba.onrender.com";
     setInterval(async () => {
         try {
             await axios.get(siteUrl);
-            console.log(`⚡ [${new Date().toLocaleTimeString()}] Ping Successful: Server is active.`);
+            console.log('⚡ Ping successful');
         } catch (error) {
-            console.error('❌ Ping Error:', error.message);
+            console.error('❌ Ping failed');
         }
-    }, 600000); // إرسال طلب كل 10 دقائق
+    }, 600000); 
 };
 
-// --- 4. تشغيل السيرفر ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`
-    ===========================================
-    🚀 السيرفر يعمل الآن على المنفذ: ${PORT}
-    🔗 رابط الموقع: https://test-1dba.onrender.com
-    🔐 لوحة التحكم: /admin?key=Wassit2026
-    ===========================================
-    `);
-    
-    // بدء عملية الـ Ping التلقائي
+    console.log(`🚀 Server on port ${PORT}`);
     startPinging();
 });
