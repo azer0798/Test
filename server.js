@@ -1,127 +1,84 @@
-require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
-const session = require('express-session');
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const multer = require('multer');
-
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-mongoose.connect(process.env.MONGO_URI).then(() => console.log("✅ Database Connected"));
-
-cloudinary.config({ 
-    cloud_name: process.env.CLOUDINARY_NAME, 
-    api_key: process.env.CLOUDINARY_KEY, 
-    api_secret: process.env.CLOUDINARY_SECRET 
-});
-
-const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: { folder: 'wassitdz_uploads', resource_type: 'auto' }
-});
-const upload = multer({ storage: storage });
-
-// Models
-const Account = mongoose.model('Account', new mongoose.Schema({
-    id: Number, title: String, priceUSD: String, priceDZ: String, 
-    linkType: String, imgs: [String], status: { type: String, default: 'متاح' },
-    views: { type: Number, default: 0 }
-}));
-
-const Settings = mongoose.model('Settings', new mongoose.Schema({
-    supportLink: String, mediationLink: String, sellAccountLink: String,
-    buyNowLink: String, announcement: String, themeColor: String, logoUrl: String
-}));
-
-const FAQ = mongoose.model('FAQ', new mongoose.Schema({ question: String, answer: String }));
-
-app.use(session({ secret: 'wassit_secure_key', resave: false, saveUninitialized: true }));
-app.set('view engine', 'ejs');
-app.set('views', __dirname);
-
-// Routes
-app.get('/', async (req, res) => {
-    try {
-        const accounts = await Account.find().sort({ id: -1 });
-        const faqs = await FAQ.find();
-        const settings = await Settings.findOne() || {};
-        res.render('index', { accounts, settings, faqs });
-    } catch (err) { res.status(500).send("Error"); }
-});
-
-app.get('/account/:id', async (req, res) => {
-    try {
-        const account = await Account.findOneAndUpdate({ id: req.params.id }, { $inc: { views: 1 } }, { new: true });
-        const settings = await Settings.findOne() || {};
-        if (!account) return res.redirect('/');
-        res.render('product', { account, settings });
-    } catch (err) { res.redirect('/'); }
-});
-
-app.get('/admin-panel', async (req, res) => {
-    if (!req.session.isAdmin) return res.redirect('/login');
-    const accounts = await Account.find().sort({ id: -1 });
-    const settings = await Settings.findOne() || {};
-    const faqs = await FAQ.find();
-    res.render('admin', { accounts, settings, faqs });
-});
-
-app.post('/add-account', upload.array('imageFiles', 5), async (req, res) => {
-    const lastAcc = await Account.findOne().sort({ id: -1 });
-    const newId = lastAcc ? lastAcc.id + 1 : 1;
-    await Account.create({ id: newId, ...req.body, imgs: req.files.map(f => f.path) });
-    res.redirect('/admin-panel');
-});
-
-app.get('/toggle-status/:id', async (req, res) => {
-    const acc = await Account.findOne({ id: req.params.id });
-    if(acc) {
-        acc.status = acc.status === 'متاح' ? 'تم البيع' : 'متاح';
-        await acc.save();
-    }
-    res.redirect('/admin-panel');
-});
-
-app.get('/delete-account/:id', async (req, res) => {
-    await Account.findOneAndDelete({ id: req.params.id });
-    res.redirect('/admin-panel');
-});
-
-app.post('/update-settings', async (req, res) => {
-    await Settings.findOneAndUpdate({}, req.body, { upsert: true });
-    res.redirect('/admin-panel');
-});
-
-app.post('/add-faq', async (req, res) => { await FAQ.create(req.body); res.redirect('/admin-panel'); });
-app.get('/delete-faq/:id', async (req, res) => { await FAQ.findByIdAndDelete(req.params.id); res.redirect('/admin-panel'); });
-
-app.get('/login', (req, res) => res.render('login'));
-app.post('/login', (req, res) => {
-    if (req.body.username === process.env.ADMIN_USER && req.body.password === process.env.ADMIN_PASS) {
-        req.session.isAdmin = true; res.redirect('/admin-panel');
-    } else res.send("Error");
-});
-
-app.listen(process.env.PORT || 3000);
 const axios = require('axios');
+const path = require('path');
+const app = express();
 
-// ميزة Ping التلقائي لمنع خمول السيرفر
-const startPinging = () => {
-  // استبدل الرابط أدناه برابط موقعك الحقيقي على الاستضافة
-  const URL = `https://${process.env.RENDER_EXTERNAL_HOSTNAME || 'wassitdz-game.onrender.com'}`; 
+// إعداد المحرك وتنسيقات البيانات
+app.set('view engine', 'ejs');
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static('public'));
 
-  setInterval(async () => {
-    try {
-      await axios.get(URL);
-      console.log('⚡ Ping successful: Keep-alive active');
-    } catch (error) {
-      console.error('❌ Ping failed:', error.message);
-    }
-  }, 600000); // يقوم بعمل Ping كل 10 دقائق (600,000 مللي ثانية)
+// --- بيانات الموقع (يفضل لاحقاً ربطها بملف JSON أو قاعدة بيانات) ---
+let settings = {
+    themeColor: '#007bff',
+    logoUrl: 'https://res.cloudinary.com/dyaiiu0if/image/upload/v1770741343/1770741239456_kabqtl.png',
+    announcement: 'مرحباً بكم في WassitDZ - المتجر الأول لبيع حسابات الألعاب في الجزائر',
+    buyNowLink: 'https://wa.me/213xxxxxxxxx', // ضع رابط الواتساب أو التلغرام هنا
+    mediationLink: '#',
+    sellAccountLink: '#',
+    supportLink: '#'
 };
 
-// تشغيل الميزة عند بدء السيرفر
-startPinging();
+let accounts = []; // مصفوفة الحسابات
+let faqs = [];     // مصفوفة الأسئلة الشائعة
+
+// --- 1. ميزة التمويه الأمني (صفحة الحظر الوهمية) ---
+app.get('/admin', (req, res) => {
+    const SECRET_KEY = "Wassit2026"; // الكلمة السرية للدخول
+    const userKey = req.query.key;
+    const userIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+    if (userKey === SECRET_KEY) {
+        // إذا كان المفتاح صحيحاً، افتح لوحة التحكم
+        res.render('admin', { accounts, settings, faqs });
+    } else {
+        // إذا حاول أي شخص الدخول بدون المفتاح، تظهر له صفحة الحظر (blocked.ejs)
+        res.status(403).render('blocked', { userIp });
+    }
+});
+
+// --- 2. المسارات الأساسية للمتجر ---
+
+// الصفحة الرئيسية
+app.get('/', (req, res) => {
+    res.render('index', { accounts, settings, faqs });
+});
+
+// صفحة تفاصيل المنتج (الحساب)
+app.get('/account/:id', (req, res) => {
+    const account = accounts.find(a => a.id == req.params.id);
+    if (account) {
+        res.render('product', { account, settings });
+    } else {
+        res.redirect('/');
+    }
+});
+
+// --- 3. ميزة Ping التلقائي (Keep-Alive) لمنع "نوم" السيرفر على Render ---
+const startPinging = () => {
+    const siteUrl = "https://test-1dba.onrender.com"; // رابط موقعك الذي زودتني به
+    
+    setInterval(async () => {
+        try {
+            await axios.get(siteUrl);
+            console.log(`⚡ [${new Date().toLocaleTimeString()}] Ping Successful: Server is active.`);
+        } catch (error) {
+            console.error('❌ Ping Error:', error.message);
+        }
+    }, 600000); // إرسال طلب كل 10 دقائق
+};
+
+// --- 4. تشغيل السيرفر ---
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`
+    ===========================================
+    🚀 السيرفر يعمل الآن على المنفذ: ${PORT}
+    🔗 رابط الموقع: https://test-1dba.onrender.com
+    🔐 لوحة التحكم: /admin?key=Wassit2026
+    ===========================================
+    `);
+    
+    // بدء عملية الـ Ping التلقائي
+    startPinging();
+});
