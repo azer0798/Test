@@ -5,14 +5,16 @@ const session = require('express-session');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
-const axios = require('axios'); // تم إضافة axios للـ Ping
+const axios = require('axios');
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// الاتصال بقاعدة البيانات
 mongoose.connect(process.env.MONGO_URI).then(() => console.log("✅ Database Connected"));
 
+// إعدادات Cloudinary
 cloudinary.config({ 
     cloud_name: process.env.CLOUDINARY_NAME, 
     api_key: process.env.CLOUDINARY_KEY, 
@@ -43,34 +45,23 @@ app.use(session({ secret: 'wassit_secure_key', resave: false, saveUninitialized:
 app.set('view engine', 'ejs');
 app.set('views', __dirname);
 
-// --- Middleware للحماية والتمويه ---
+// جلب الـ IP للتحذير
 const getIp = (req) => req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
 // --- Routes ---
 
-// 1. تضليل صفحة الـ Login القديمة
-app.get('/login', (req, res) => {
-    res.status(403).render('blocked', { userIp: getIp(req) });
-});
+// 1. تضليل الروابط المكشوفة
+app.get('/login', (req, res) => res.status(403).render('blocked', { userIp: getIp(req) }));
+app.get('/admin', (req, res) => res.status(403).render('blocked', { userIp: getIp(req) }));
 
-// 2. تضليل صفحة الـ Admin القديمة
-app.get('/admin', (req, res) => {
-    res.status(403).render('blocked', { userIp: getIp(req) });
-});
-
-// 3. المسار الحقيقي للإدارة مع المفتاح السري من .env
+// 2. المسار الحقيقي للإدارة (مع المفتاح السري)
 app.get('/admin-panel', async (req, res) => {
-    const secretKey = process.env.ADMIN_KEY; // Wassit2026
-    const userKey = req.query.key;
-
-    // إذا لم يتطابق المفتاح السري في الرابط، اظهر صفحة الحظر
-    if (userKey !== secretKey) {
+    const secretKey = process.env.ADMIN_KEY;
+    if (req.query.key !== secretKey) {
         return res.status(403).render('blocked', { userIp: getIp(req) });
     }
 
-    // إذا تطابق المفتاح، تحقق من تسجيل الدخول (Session)
     if (!req.session.isAdmin) {
-        // إذا لم يكن مسجلاً، اظهر صفحة اللوجن الحقيقية (نسميها مثلا login-secure)
         return res.render('login'); 
     }
 
@@ -78,6 +69,16 @@ app.get('/admin-panel', async (req, res) => {
     const settings = await Settings.findOne() || {};
     const faqs = await FAQ.find();
     res.render('admin', { accounts, settings, faqs });
+});
+
+// 3. معالجة تسجيل الدخول (المسار الجديد لتجنب خطأ POST)
+app.post('/login-auth', (req, res) => {
+    if (req.body.username === process.env.ADMIN_USER && req.body.password === process.env.ADMIN_PASS) {
+        req.session.isAdmin = true; 
+        res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`);
+    } else {
+        res.send("خطأ في البيانات، يرجى العودة والمحاولة مرة أخرى.");
+    }
 });
 
 app.get('/', async (req, res) => {
@@ -98,6 +99,7 @@ app.get('/account/:id', async (req, res) => {
     } catch (err) { res.redirect('/'); }
 });
 
+// عمليات الأدمن (مع الحفاظ على المفتاح السري في الروابط)
 app.post('/add-account', upload.array('imageFiles', 5), async (req, res) => {
     const lastAcc = await Account.findOne().sort({ id: -1 });
     const newId = lastAcc ? lastAcc.id + 1 : 1;
@@ -124,23 +126,14 @@ app.post('/update-settings', async (req, res) => {
 app.post('/add-faq', async (req, res) => { await FAQ.create(req.body); res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`); });
 app.get('/delete-faq/:id', async (req, res) => { await FAQ.findByIdAndDelete(req.params.id); res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`); });
 
-app.post('/login-auth', (req, res) => {
-    if (req.body.username === process.env.ADMIN_USER && req.body.password === process.env.ADMIN_PASS) {
-        req.session.isAdmin = true; 
-        res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`);
-    } else {
-        res.send("خطأ في بيانات الدخول");
-    }
-});
-
-// --- ميزة الـ Ping التلقائي لـ Render ---
+// --- ميزة الـ Ping التلقائي ---
 const startPinging = () => {
     setInterval(async () => {
         try {
             await axios.get("https://test-1dba.onrender.com");
-            console.log('⚡ Ping successful: Site is awake');
-        } catch (e) { console.log('❌ Ping failed'); }
-    }, 600000); // 10 دقائق
+            console.log('⚡ Ping Active');
+        } catch (e) { console.log('❌ Ping Fail'); }
+    }, 600000); 
 };
 
 app.listen(process.env.PORT || 3000, () => {
