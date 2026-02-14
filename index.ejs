@@ -10,35 +10,46 @@
     
     <style>
         :root { 
-            --primary: #ff4d94; /* وردي ملكي */
-            --bg-body: #fff5f8; /* خلفية وردية خفيفة جداً */
+            --primary: #ff4d94; 
+            --bg-body: #fff5f8; 
             --card-bg: #ffffff;
-            --text-dark: #444;
         }
         
         body { 
             background: var(--bg-body); 
-            color: var(--text-dark);
             font-family: 'Cairo', sans-serif; 
             padding-top: 40px; 
             margin: 0; 
         }
 
-        /* شريط الإعلان */
+        /* --- شريط الإعلان المتحرك --- */
         .top-notice { 
             background: var(--primary); 
             color: #fff; 
             height: 40px; 
-            line-height: 40px; 
             position: fixed; 
             top: 0; width: 100%; 
             z-index: 2000; 
-            font-size: 13px; 
-            font-weight: bold; 
-            text-align: center;
+            overflow: hidden; /* لإخفاء النص الخارج عن الحدود */
+            display: flex;
+            align-items: center;
         }
 
-        /* الهيدر */
+        .scrolling-text {
+            white-space: nowrap;
+            display: inline-block;
+            padding-right: 100%;
+            animation: scroll-left 15s linear infinite;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        @keyframes scroll-left {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* --- الهيدر والقائمة --- */
         .header-main { 
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
@@ -50,18 +61,11 @@
         .header-main img { max-height: 55px; }
         
         .menu-btn { 
-            background: #fff; 
-            border: 2px solid #ffe6f0; 
-            padding: 8px 12px; 
-            border-radius: 12px; 
-            cursor: pointer; 
-            color: var(--primary); 
-            font-size: 18px;
-            transition: 0.3s;
+            background: #fff; border: 2px solid #ffe6f0; padding: 8px 12px; 
+            border-radius: 12px; cursor: pointer; color: var(--primary); 
+            font-size: 18px; transition: 0.3s;
         }
-        .menu-btn:hover { background: var(--primary); color: #fff; }
 
-        /* القائمة الجانبية */
         .sidebar { 
             position: fixed; top: 0; right: -280px; width: 280px; height: 100%; 
             background: #fff; z-index: 3000; transition: 0.4s ease; 
@@ -74,16 +78,15 @@
         .sidebar-link { 
             display: flex; align-items: center; gap: 12px; padding: 12px; 
             color: #555; text-decoration: none; font-weight: 600; border-radius: 10px; 
-            margin-bottom: 8px; transition: 0.3s; font-size: 14px;
+            margin-bottom: 8px; transition: 0.3s;
         }
         .sidebar-link i { 
             font-size: 16px; width: 32px; height: 32px; background: #fff0f5;
             display: flex; align-items: center; justify-content: center; border-radius: 8px;
             color: var(--primary);
         }
-        .sidebar-link:hover { background: #fff0f5; color: var(--primary); }
 
-        /* بطاقة الحساب */
+        /* --- بطاقة الحساب --- */
         .account-card {
             background: var(--card-bg);
             border-radius: 18px;
@@ -92,35 +95,38 @@
             transition: 0.3s;
             margin-bottom: 20px;
         }
-        .account-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary);
-            box-shadow: 0 10px 20px rgba(255, 77, 148, 0.1);
+        .account-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .price-tag { color: var(--primary); font-weight: 800; }
+        .btn-main { background: var(--primary); border: none; border-radius: 10px; color: #fff; font-weight: 700; width: 100%; padding: 8px; }
+
+        /* --- نظام الأسئلة الشائعة (مخفي ويظهر بالضغط) --- */
+        .faq-section { background: #fff; border-radius: 20px; padding: 25px; margin-top: 40px; border: 1px solid #ffeef4; }
+        .faq-item { border-bottom: 1px solid #f9f9f9; padding: 10px 0; }
+        
+        .faq-question { 
+            font-weight: 700; color: var(--primary); cursor: pointer; 
+            display: flex; align-items: center; justify-content: space-between; 
+            padding: 10px 0; transition: 0.3s;
         }
         
-        .price-tag { color: var(--primary); font-weight: 800; font-size: 1.1rem; }
-
-        .btn-main {
-            background: var(--primary);
-            border: none; border-radius: 10px; color: #fff; font-weight: 700;
-            padding: 8px; width: 100%; transition: 0.3s;
+        .faq-answer { 
+            max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; 
+            font-size: 14px; color: #777; padding: 0 10px;
         }
-        .btn-main:hover { opacity: 0.9; box-shadow: 0 4px 12px rgba(255, 77, 148, 0.3); }
+        
+        .faq-item.active .faq-answer { max-height: 200px; padding-bottom: 15px; }
+        .faq-item.active .faq-question i { transform: rotate(-90deg); }
+        .faq-question i { transition: 0.3s; font-size: 12px; }
 
-        /* قسم الأسئلة الشائعة */
-        .faq-section { background: #fff; border-radius: 20px; padding: 25px; margin-top: 40px; border: 1px solid #ffeef4; }
-        .faq-item { border-bottom: 1px solid #f9f9f9; padding: 15px 0; }
-        .faq-question { font-weight: 700; color: var(--primary); margin-bottom: 5px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
-        .faq-answer { font-size: 14px; color: #777; padding-right: 25px; }
-
-        /* الحقوق */
         footer { text-align: center; padding: 30px; color: #aaa; font-size: 13px; }
     </style>
 </head>
 <body>
 
     <div class="top-notice">
-        <i class="fas fa-star me-2"></i> <%= settings.announcement %>
+        <div class="scrolling-text">
+            <i class="fas fa-star me-2"></i> <%= settings.announcement %> &nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-star me-2"></i> <%= settings.announcement %>
+        </div>
     </div>
 
     <header class="header-main">
@@ -165,15 +171,19 @@
             <h5 class="fw-bold mb-4 text-center"><i class="fas fa-question-circle me-2"></i> الأسئلة الشائعة</h5>
             <% faqs.forEach(faq => { %>
                 <div class="faq-item">
-                    <div class="faq-question"><i class="fas fa-chevron-left fa-xs"></i> <%= faq.question %></div>
-                    <div class="faq-answer"><%= faq.answer %></div>
+                    <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
+                        <span><%= faq.question %></span>
+                        <i class="fas fa-chevron-left"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <%= faq.answer %>
+                    </div>
                 </div>
             <% }) %>
         </section>
 
         <footer>
             <p>جميع الحقوق محفوظة &copy; WassitDZ 2026</p>
-            <div style="font-size: 10px; opacity: 0.5;">تم التطوير بكل ❤️ لخدمة الجيمرز في الجزائر</div>
         </footer>
     </main>
 
