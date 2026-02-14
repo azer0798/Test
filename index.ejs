@@ -6,31 +6,175 @@
     <title>WassitDZ Game | متجر الحسابات</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <style>
         :root { 
-            --primary: <%= settings.themeColor || '#007bff' %>; 
-            --bg-body: #f4f6f8;
+            --primary: <%= settings.themeColor || '#00d2ff' %>; 
+            --main-bg: #0b0e14; /* خلفية ليلية */
+            --card-bg: #151921; /* لون البطاقات */
+            --text-color: #e2e8f0;
+            --accent-glow: rgba(0, 210, 255, 0.2);
         }
         
-        body { background: var(--bg-body); font-family: 'Segoe UI', sans-serif; padding-top: 40px; margin: 0; overflow-x: hidden; }
+        body { 
+            background: var(--main-bg); 
+            color: var(--text-color);
+            font-family: 'Cairo', sans-serif; 
+            padding-top: 40px; 
+            margin: 0; 
+            overflow-x: hidden; 
+        }
 
-        /* شريط الإعلان */
-        .top-notice { background: #000; color: #fff; height: 40px; line-height: 40px; position: fixed; top: 0; width: 100%; z-index: 2000; font-size: 13px; font-weight: bold; text-align: center; }
+        /* شريط الإعلان ناعم */
+        .top-notice { 
+            background: linear-gradient(90deg, #000, #1a1a1a); 
+            color: var(--primary); 
+            height: 40px; 
+            line-height: 40px; 
+            position: fixed; 
+            top: 0; width: 100%; 
+            z-index: 2000; 
+            font-size: 12px; 
+            font-weight: bold; 
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
 
-        /* الهيدر: القائمة يمين واللوغو يسار */
+        /* الهيدر الزجاجي */
         .header-main { 
-            background: #fff; padding: 15px 20px; border-bottom: 1px solid #eee;
+            background: rgba(21, 25, 33, 0.8) !important;
+            backdrop-filter: blur(12px);
+            padding: 10px 20px; 
+            border-bottom: 1px solid rgba(255,255,255,0.05);
             display: flex; align-items: center; justify-content: space-between;
             position: sticky; top: 40px; z-index: 1000; flex-direction: row-reverse;
         }
-        .header-main img { max-height: 60px; width: auto; }
-        .menu-btn { background: #fff; border: 1px solid #eee; padding: 10px 15px; border-radius: 8px; cursor: pointer; color: #333; font-size: 20px; }
+        .header-main img { max-height: 50px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2)); }
+        
+        /* زر القائمة الصغير والجذاب */
+        .menu-btn { 
+            background: rgba(255,255,255,0.05); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            padding: 8px 12px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            color: var(--primary); 
+            font-size: 18px;
+            transition: 0.3s;
+        }
+        .menu-btn:hover { background: var(--primary); color: #000; }
 
-        /* القائمة الجانبية (Sidebar) */
-        .sidebar { position: fixed; top: 0; right: -280px; width: 280px; height: 100%; background: #fff; z-index: 3000; transition: 0.4s ease; box-shadow: -5px 0 15px rgba(0,0,0,0.1); padding: 20px; }
+        /* القائمة الجانبية المظلمة */
+        .sidebar { 
+            position: fixed; top: 0; right: -280px; width: 280px; height: 100%; 
+            background: var(--card-bg); z-index: 3000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5); padding: 25px;
+            border-left: 1px solid rgba(255,255,255,0.05);
+        }
         .sidebar.active { right: 0; }
-        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2999; display: none; }
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 2999; display: none; }
         .sidebar-overlay.active { display: block; }
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-        .sidebar-link { display: block; padding: 15px; color: #333; text-decoration: none; font-weight: bold; border-radius: 10px; margin-bottom: 10px; transition: 0.3s; }
-        .sidebar-link:hover { background: #f8f9fa; color: var(--primary); }
+        
+        /* تصغير أيقونات القائمة وجعلها نيون */
+        .sidebar-link { 
+            display: flex; align-items: center; gap: 12px; padding: 12px; 
+            color: #a0aec0; text-decoration: none; font-weight: 600; border-radius: 12px; 
+            margin-bottom: 8px; transition: 0.3s; font-size: 14px;
+        }
+        .sidebar-link i { 
+            font-size: 16px; width: 30px; height: 30px; background: rgba(255,255,255,0.03);
+            display: flex; align-items: center; justify-content: center; border-radius: 8px;
+            color: var(--primary);
+        }
+        .sidebar-link:hover { background: rgba(0, 210, 255, 0.1); color: var(--primary); }
+
+        /* بطاقة الحساب الاحترافية */
+        .account-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        .account-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 25px var(--accent-glow);
+        }
+        
+        .price-tag {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .btn-main {
+            background: linear-gradient(135deg, var(--primary), #3a7bd5);
+            border: none; border-radius: 12px; color: #000; font-weight: 700;
+            padding: 10px; width: 100%; transition: 0.3s;
+        }
+        .btn-main:hover { filter: brightness(1.2); box-shadow: 0 5px 15px var(--accent-glow); }
+
+    </style>
+</head>
+<body>
+
+    <div class="top-notice">
+        <i class="fas fa-bullhorn me-2"></i> <%= settings.announcement %>
+    </div>
+
+    <header class="header-main">
+        <div class="logo">
+            <img src="<%= settings.logoUrl %>" alt="WassitDZ Logo">
+        </div>
+        <button class="menu-btn" onclick="toggleMenu()">
+            <i class="fas fa-bars-staggered"></i>
+        </button>
+    </header>
+
+    <div class="sidebar-overlay" id="overlay" onclick="toggleMenu()"></div>
+    
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h5 class="m-0 fw-bold" style="color:var(--primary)">القائمة</h5>
+            <button class="btn-close btn-close-white" onclick="toggleMenu()"></button>
+        </div>
+        <a href="/" class="sidebar-link"><i class="fas fa-home"></i> الرئيسية</a>
+        <a href="<%= settings.mediationLink %>" class="sidebar-link"><i class="fas fa-shield-halved"></i> طلب وساطة</a>
+        <a href="<%= settings.sellAccountLink %>" class="sidebar-link"><i class="fas fa-tags"></i> بيع حسابك</a>
+        <a href="<%= settings.supportLink %>" class="sidebar-link"><i class="fas fa-headset"></i> الدعم الفني</a>
+        <div class="mt-4 p-3 border-top border-secondary text-center">
+            <small class="text-muted">WassitDZ &copy; 2026</small>
+        </div>
+    </div>
+
+    <main class="container py-5">
+        <div class="row g-4">
+            <% accounts.forEach(acc => { %>
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="account-card">
+                        <img src="<%= acc.imgs[0] %>" class="w-100" style="height: 160px; object-fit: cover;">
+                        <div class="p-3">
+                            <h6 class="text-truncate fw-bold mb-1" style="font-size: 14px;"><%= acc.title %></h6>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="price-tag"><%= acc.priceDZ %> دج</span>
+                            </div>
+                            <a href="/account/<%= acc.id %>" class="btn btn-main btn-sm">التفاصيل</a>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </main>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
