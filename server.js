@@ -1,99 +1,103 @@
+require('dotenv').config();
 const express = require('express');
-const axios = require('axios');
-const path = require('path');
-const session = require('express-session'); // نظام الجلسات الأصلي الخاص بك
-const fs = require('fs');
+const mongoose = require('mongoose');
+const session = require('express-session');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
+
 const app = express();
-
-// --- إعدادات المحرك (البحث في المجلد الرئيسي كما طلبت) ---
-app.set('view engine', 'ejs');
-app.set('views', __dirname); 
-
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(__dirname));
-app.use(session({
-    secret: 'secret-key',
-    resave: false,
-    saveUninitialized: true
+
+mongoose.connect(process.env.MONGO_URI).then(() => console.log("✅ Database Connected"));
+
+cloudinary.config({ 
+    cloud_name: process.env.CLOUDINARY_NAME, 
+    api_key: process.env.CLOUDINARY_KEY, 
+    api_secret: process.env.CLOUDINARY_SECRET 
+});
+
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: { folder: 'wassitdz_uploads', resource_type: 'auto' }
+});
+const upload = multer({ storage: storage });
+
+const Account = mongoose.model('Account', new mongoose.Schema({
+    id: Number, title: String, priceUSD: String, priceDZ: String, 
+    linkType: String, imgs: [String], status: { type: String, default: 'متاح' },
+    views: { type: Number, default: 0 }
 }));
 
-// --- دوال استرجاع البيانات (السحابات) ---
-// تأكد أن هذه الملفات موجودة في المجلد الرئيسي
-const getData = (file) => JSON.parse(fs.readFileSync(path.join(__dirname, file), 'utf8'));
-const saveData = (file, data) => fs.writeFileSync(path.join(__dirname, file), JSON.stringify(data, null, 2));
+const Settings = mongoose.model('Settings', new mongoose.Schema({
+    supportLink: String, mediationLink: String, sellAccountLink: String,
+    buyNowLink: String, announcement: String, themeColor: String, logoUrl: String
+}));
 
-// --- 1. نظام الحماية والتمويه (التعديل الجديد) ---
-app.get('/admin', (req, res) => {
-    const SECRET_KEY = "Wassit2026"; 
-    const userKey = req.query.key;
-    const userIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+const FAQ = mongoose.model('FAQ', new mongoose.Schema({ question: String, answer: String }));
 
-    // إذا لم يستخدم المفتاح السري، أظهر له صفحة الحظر فوراً
-    if (userKey !== SECRET_KEY) {
-        return res.status(403).render('blocked', { userIp });
-    }
-    
-    // إذا استخدم المفتاح، تحقق هل هو مسجل دخول أصلاً؟
-    if (req.session.loggedIn) {
-        const accounts = getData('accounts.json');
-        const settings = getData('settings.json');
-        const faqs = getData('faqs.json');
-        res.render('admin', { accounts, settings, faqs });
-    } else {
-        res.redirect('/login'); // إذا معه المفتاح بس مش مسجل دخول يروح لصفحة اللوجن
-    }
+app.use(session({ secret: 'wassit_secure_key', resave: false, saveUninitialized: true }));
+app.set('view engine', 'ejs');
+app.set('views', __dirname);
+
+app.get('/', async (req, res) => {
+    try {
+        const accounts = await Account.find().sort({ id: -1 });
+        const faqs = await FAQ.find();
+        const settings = await Settings.findOne() || {};
+        res.render('index', { accounts, settings, faqs });
+    } catch (err) { res.status(500).send("Error"); }
 });
 
-// --- 2. نظام تسجيل الدخول (الأصلي الخاص بك) ---
-app.get('/login', (req, res) => {
-    res.render('login');
-});
-
-app.post('/login', (req, res) => {
-    const { email, password } = req.body;
-    const settings = getData('settings.json');
-    
-    if (email === settings.adminEmail && password === settings.adminPassword) {
-        req.session.loggedIn = true;
-        // عند النجاح يوجهه للأدمن مع المفتاح السري ليعمل الرابط
-        res.redirect('/admin?key=Wassit2026');
-    } else {
-        res.send('بريد أو كلمة سر خاطئة');
-    }
-});
-
-// --- 3. المسارات العامة (استرجاع البيانات من السحابات) ---
-app.get('/', (req, res) => {
-    const accounts = getData('accounts.json');
-    const settings = getData('settings.json');
-    const faqs = getData('faqs.json');
-    res.render('index', { accounts, settings, faqs });
-});
-
-app.get('/account/:id', (req, res) => {
-    const accounts = getData('accounts.json');
-    const settings = getData('settings.json');
-    const account = accounts.find(a => a.id == req.params.id);
-    if (account) {
+app.get('/account/:id', async (req, res) => {
+    try {
+        const account = await Account.findOneAndUpdate({ id: req.params.id }, { $inc: { views: 1 } }, { new: true });
+        const settings = await Settings.findOne() || {};
+        if (!account) return res.redirect('/');
         res.render('product', { account, settings });
-    } else {
-        res.redirect('/');
-    }
+    } catch (err) { res.redirect('/'); }
 });
 
-// --- 4. ميزة الـ Ping التلقائي (Keep-Alive) ---
-const startPinging = () => {
-    const siteUrl = "https://test-1dba.onrender.com";
-    setInterval(async () => {
-        try {
-            await axios.get(siteUrl);
-            console.log('⚡ Ping Active: Site is awake');
-        } catch (e) { console.log('❌ Ping Fail'); }
-    }, 600000); 
-};
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 السيرفر يعمل واسترجاع البيانات من JSON مفعل`);
-    startPinging();
+app.get('/admin-panel', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/login');
+    const accounts = await Account.find().sort({ id: -1 });
+    const settings = await Settings.findOne() || {};
+    const faqs = await FAQ.find();
+    res.render('admin', { accounts, settings, faqs });
 });
+
+app.post('/add-account', upload.array('imageFiles', 5), async (req, res) => {
+    const lastAcc = await Account.findOne().sort({ id: -1 });
+    const newId = lastAcc ? lastAcc.id + 1 : 1;
+    await Account.create({ id: newId, ...req.body, imgs: req.files.map(f => f.path) });
+    res.redirect('/admin-panel');
+});
+
+app.get('/toggle-status/:id', async (req, res) => {
+    const acc = await Account.findOne({ id: req.params.id });
+    if(acc) { acc.status = acc.status === 'متاح' ? 'تم البيع' : 'متاح'; await acc.save(); }
+    res.redirect('/admin-panel');
+});
+
+app.get('/delete-account/:id', async (req, res) => {
+    await Account.findOneAndDelete({ id: req.params.id });
+    res.redirect('/admin-panel');
+});
+
+app.post('/update-settings', async (req, res) => {
+    await Settings.findOneAndUpdate({}, req.body, { upsert: true });
+    res.redirect('/admin-panel');
+});
+
+app.post('/add-faq', async (req, res) => { await FAQ.create(req.body); res.redirect('/admin-panel'); });
+app.get('/delete-faq/:id', async (req, res) => { await FAQ.findByIdAndDelete(req.params.id); res.redirect('/admin-panel'); });
+
+app.get('/login', (req, res) => res.render('login'));
+app.post('/login', (req, res) => {
+    if (req.body.username === process.env.ADMIN_USER && req.body.password === process.env.ADMIN_PASS) {
+        req.session.isAdmin = true; res.redirect('/admin-panel');
+    } else res.send("Error");
+});
+
+app.listen(process.env.PORT || 3000);
