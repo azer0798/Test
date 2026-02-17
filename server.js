@@ -11,10 +11,12 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// الاتصال بقاعدة البيانات
-mongoose.connect(process.env.MONGO_URI).then(() => console.log("✅ Database Connected"));
+// 1. الاتصال بقاعدة البيانات
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("✅ Database Connected"))
+    .catch(err => console.error("❌ DB Connection Error:", err));
 
-// إعدادات Cloudinary لرفع الصور
+// 2. إعدادات Cloudinary لرفع الصور
 cloudinary.config({ 
     cloud_name: process.env.CLOUDINARY_NAME, 
     api_key: process.env.CLOUDINARY_KEY, 
@@ -27,30 +29,66 @@ const storage = new CloudinaryStorage({
 });
 const upload = multer({ storage: storage });
 
-// --- النماذج (Models) ---
+// 3. النماذج المحدثة (Models)
 const Account = mongoose.model('Account', new mongoose.Schema({
-    id: Number, title: String, priceUSD: String, priceDZ: String, 
-    linkType: String, imgs: [String], status: { type: String, default: 'متاح' },
+    id: Number, 
+    title: String, 
+    priceUSD: String, 
+    priceDZ: String, 
+    coins: String, // تمت إضافتها لتجنب خطأ صفحة التفاصيل
+    gems: String,  // تمت إضافتها لتجنب خطأ صفحة التفاصيل
+    linkType: String, 
+    imgs: [String], 
+    status: { type: String, default: 'متاح' },
     views: { type: Number, default: 0 }
 }));
 
 const Settings = mongoose.model('Settings', new mongoose.Schema({
     supportLink: String, mediationLink: String, sellAccountLink: String,
     buyNowLink: String, announcement: String, themeColor: String, logoUrl: String,
-    usdRate: { type: Number, default: 240 } // سعر الصرف
+    usdRate: { type: Number, default: 240 }
 }));
 
 const FAQ = mongoose.model('FAQ', new mongoose.Schema({ question: String, answer: String }));
 
+// 4. الإعدادات العامة
 app.use(session({ secret: 'wassit_secure_key', resave: false, saveUninitialized: true }));
 app.set('view engine', 'ejs');
 app.set('views', __dirname);
 
 const getIp = (req) => req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
-// --- الحماية والتمويه ---
+// --- 5. المسارات (Routes) ---
+
+// الصفحة الرئيسية
+app.get('/', async (req, res) => {
+    const accounts = await Account.find().sort({ id: -1 });
+    const settings = await Settings.findOne() || { usdRate: 240 };
+    const faqs = await FAQ.find();
+    res.render('index', { accounts, settings, faqs });
+});
+
+// المسار المفقود: صفحة تفاصيل الحساب (تم إصلاحه)
+app.get('/account/:id', async (req, res) => {
+    try {
+        const account = await Account.findOneAndUpdate(
+            { id: req.params.id }, 
+            { $inc: { views: 1 } }, 
+            { new: true }
+        );
+        const settings = await Settings.findOne() || {};
+
+        if (!account) return res.redirect('/');
+        res.render('product', { account, settings });
+    } catch (err) {
+        res.redirect('/');
+    }
+});
+
+// الحماية والتمويه
 app.get('/login', (req, res) => res.status(403).render('blocked', { userIp: getIp(req) }));
 
+// لوحة التحكم
 app.get('/admin-panel', async (req, res) => {
     if (req.query.key !== process.env.ADMIN_KEY) {
         return res.status(403).render('blocked', { userIp: getIp(req) });
@@ -63,52 +101,49 @@ app.get('/admin-panel', async (req, res) => {
     res.render('admin', { accounts, settings, faqs });
 });
 
+// تسجيل الدخول للإدارة
 app.post('/auth-admin', (req, res) => {
     if (req.body.username === process.env.ADMIN_USER && req.body.password === process.env.ADMIN_PASS) {
         req.session.isAdmin = true; 
         res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`);
     } else {
-        res.status(401).send("بيانات الدخول غير صحيحة");
+        res.status(401).send("بيانات الدخول خاطئة");
     }
 });
 
-// --- المسارات العامة ---
-app.get('/', async (req, res) => {
-    try {
-        const accounts = await Account.find().sort({ id: -1 });
-        const faqs = await FAQ.find();
-        const settings = await Settings.findOne() || { usdRate: 240 };
-        res.render('index', { accounts, settings, faqs });
-    } catch (err) { res.status(500).send("Error"); }
-});
-
+// إضافة حساب جديد
 app.post('/add-account', upload.array('imageFiles', 5), async (req, res) => {
     const lastAcc = await Account.findOne().sort({ id: -1 });
     const newId = lastAcc ? lastAcc.id + 1 : 1;
-    await Account.create({ id: newId, ...req.body, imgs: req.files.map(f => f.path) });
+    await Account.create({ 
+        id: newId, 
+        ...req.body, 
+        imgs: req.files.map(f => f.path) 
+    });
     res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`);
 });
 
+// تحديث الإعدادات
 app.post('/update-settings', async (req, res) => {
     await Settings.findOneAndUpdate({}, req.body, { upsert: true });
     res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`);
 });
 
+// تغيير حالة الحساب (متاح/مباع)
 app.get('/toggle-status/:id', async (req, res) => {
     const acc = await Account.findOne({ id: req.params.id });
-    if(acc) { acc.status = acc.status === 'متاح' ? 'تم البيع' : 'متاح'; await acc.save(); }
+    if(acc) { 
+        acc.status = acc.status === 'متاح' ? 'تم البيع' : 'متاح'; 
+        await acc.save(); 
+    }
     res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`);
 });
 
+// حذف حساب
 app.get('/delete-account/:id', async (req, res) => {
     await Account.findOneAndDelete({ id: req.params.id });
     res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`);
 });
 
-app.post('/add-faq', async (req, res) => { await FAQ.create(req.body); res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`); });
-app.get('/delete-faq/:id', async (req, res) => { await FAQ.findByIdAndDelete(req.params.id); res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`); });
-
-// --- Ping ---
-setInterval(() => { axios.get("https://test-1dba.onrender.com").catch(e => {}); }, 600000);
-
-app.listen(process.env.PORT || 3000, () => console.log("🚀 Server Ready"));
+// تشغيل السيرفر
+app.listen(process.env.PORT || 3000, () => console.log("🚀 Server is running..."));
