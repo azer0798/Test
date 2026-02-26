@@ -13,16 +13,15 @@ const app = express();
 // --- الإعدادات الأساسية ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', __dirname);
 
 // --- الاتصال بقاعدة البيانات ---
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("✅ تم الاتصال بقاعدة البيانات بنجاح"))
-    .catch(err => console.error("❌ خطأ في الاتصال:", err));
+    .then(() => console.log("✅ Database Connected"))
+    .catch(err => console.error("❌ DB Connection Error:", err));
 
-// --- إعدادات Cloudinary لرفع الصور ---
+// --- إعدادات Cloudinary ---
 cloudinary.config({ 
     cloud_name: process.env.CLOUDINARY_NAME, 
     api_key: process.env.CLOUDINARY_KEY, 
@@ -35,7 +34,7 @@ const storage = new CloudinaryStorage({
 });
 const upload = multer({ storage: storage });
 
-// --- تعريف النماذج (Models) ---
+// --- النماذج (Models) ---
 const Account = mongoose.model('Account', new mongoose.Schema({
     id: Number,
     title: String,
@@ -45,13 +44,13 @@ const Account = mongoose.model('Account', new mongoose.Schema({
     gems: { type: String, default: "0" },
     imgs: [String],
     status: { type: String, default: 'متاح' },
-    views: { type: Number, default: 0 },
-    createdAt: { type: Date, default: Date.now }
+    views: { type: Number, default: 0 }
 }));
 
 const Settings = mongoose.model('Settings', new mongoose.Schema({
-    supportLink: String,
-    mediationLink: String,
+    supportLink: String,       // رابط الدعم العام
+    mediationLink: String,     // رابط قناة الوساطة (منفصل)
+    buyNowLink: String,        // رابط الشراء المباشر (منفصل)
     sellAccountLink: String,
     announcement: { type: String, default: "مرحباً بكم في WassitDZ" },
     logoUrl: String,
@@ -63,26 +62,22 @@ const FAQ = mongoose.model('FAQ', new mongoose.Schema({
     answer: String
 }));
 
-// --- إعداد الجلسات (Sessions) ---
+// --- الجلسات والحماية ---
 app.use(session({
     secret: 'wassit_secure_key_2026',
     resave: false,
-    saveUninitialized: true,
-    cookie: { maxAge: 24 * 60 * 60 * 1000 }
+    saveUninitialized: true
 }));
 
-// دالة لجلب IP الزائر (للحماية)
 const getIp = (req) => req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
-// --- المسارات العامة (Public Routes) ---
+// --- المسارات العامة (Routes) ---
 
 app.get('/', async (req, res) => {
-    try {
-        const accounts = await Account.find().sort({ id: -1 });
-        const settings = await Settings.findOne() || { usdRate: 240, announcement: "مرحباً بك" };
-        const faqs = await FAQ.find();
-        res.render('index', { accounts, settings, faqs });
-    } catch (err) { res.status(500).send("خطأ في الخادم"); }
+    const accounts = await Account.find().sort({ id: -1 });
+    const settings = await Settings.findOne() || { usdRate: 240 };
+    const faqs = await FAQ.find();
+    res.render('index', { accounts, settings, faqs });
 });
 
 app.get('/account/:id', async (req, res) => {
@@ -94,68 +89,76 @@ app.get('/account/:id', async (req, res) => {
     } catch (err) { res.redirect('/'); }
 });
 
-// --- مسارات الإدارة (Admin Routes) ---
+// --- مسارات الإدارة (Admin & Edits) ---
 
 app.get('/admin-panel', async (req, res) => {
-    if (req.query.key !== process.env.ADMIN_KEY) {
-        return res.status(403).render('blocked', { userIp: getIp(req) });
-    }
-    if (!req.session.isAdmin) return res.render('login', { adminKey: req.query.key });
-
+    if (req.query.key !== process.env.ADMIN_KEY) return res.status(403).render('blocked', { userIp: getIp(req) });
+    if (!req.session.isAdmin) return res.render('login');
     const accounts = await Account.find().sort({ id: -1 });
     const settings = await Settings.findOne() || {};
     const faqs = await FAQ.find();
-    res.render('admin', { accounts, settings, faqs, adminKey: req.query.key });
+    res.render('admin', { accounts, settings, faqs });
 });
 
 app.post('/auth-admin', (req, res) => {
-    const { username, password, adminKey } = req.body;
-    if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
+    if (req.body.username === process.env.ADMIN_USER && req.body.password === process.env.ADMIN_PASS) {
         req.session.isAdmin = true;
         res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`);
-    } else {
-        res.send("بيانات الدخول خاطئة!");
-    }
+    } else { res.send("Error"); }
 });
 
+// إضافة حساب جديد
 app.post('/add-account', upload.array('imageFiles', 5), async (req, res) => {
-    if (!req.session.isAdmin) return res.sendStatus(403);
     const lastAcc = await Account.findOne().sort({ id: -1 });
     const newId = lastAcc ? lastAcc.id + 1 : 1;
     await Account.create({ id: newId, ...req.body, imgs: req.files.map(f => f.path) });
     res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`);
 });
 
+// ** جديد: تعديل بيانات الحساب **
+app.post('/edit-account/:id', async (req, res) => {
+    if (!req.session.isAdmin) return res.sendStatus(403);
+    await Account.findOneAndUpdate({ id: req.params.id }, req.body);
+    res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`);
+});
+
+// تحديث الإعدادات (الروابط المنفصلة)
 app.post('/update-settings', async (req, res) => {
     if (!req.session.isAdmin) return res.sendStatus(403);
     await Settings.findOneAndUpdate({}, req.body, { upsert: true });
     res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`);
 });
 
-app.get('/toggle-status/:id', async (req, res) => {
+// ** جديد: تعديل سؤال وجواب **
+app.post('/edit-faq/:id', async (req, res) => {
     if (!req.session.isAdmin) return res.sendStatus(403);
-    const acc = await Account.findOne({ id: req.params.id });
-    if(acc) { acc.status = acc.status === 'متاح' ? 'تم البيع' : 'متاح'; await acc.save(); }
+    await FAQ.findByIdAndUpdate(req.params.id, req.body);
     res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`);
 });
 
+// حذف حساب أو سؤال
 app.get('/delete-account/:id', async (req, res) => {
-    if (!req.session.isAdmin) return res.sendStatus(403);
     await Account.findOneAndDelete({ id: req.params.id });
     res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`);
 });
 
-app.post('/add-faq', async (req, res) => {
-    if (!req.session.isAdmin) return res.sendStatus(403);
-    await FAQ.create(req.body);
+app.get('/delete-faq/:id', async (req, res) => {
+    await FAQ.findByIdAndDelete(req.params.id);
+    res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`);
+});
+
+app.get('/toggle-status/:id', async (req, res) => {
+    const acc = await Account.findOne({ id: req.params.id });
+    if(acc) { acc.status = acc.status === 'متاح' ? 'تم البيع' : 'متاح'; await acc.save(); }
     res.redirect(`/admin-panel?key=${process.env.ADMIN_KEY}`);
 });
 
 // --- ميزة عدم النوم (Keep-Alive) ---
 const SITE_URL = `https://test-1dba.onrender.com`;
 setInterval(() => {
-    axios.get(SITE_URL).then(() => console.log('Keep-Alive: الموقع مستيقظ ⚡')).catch(() => {});
-}, 600000); // كل 10 دقائق
+    axios.get(SITE_URL).then(() => console.log('Ping OK ✅')).catch(() => {});
+}, 600000); 
 
+// تشغيل السيرفر
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 السيرفر يعمل على المنفذ ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server on port ${PORT}`));
