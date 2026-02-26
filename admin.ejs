@@ -1,71 +1,70 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>إدارة WassitDZ</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-</head>
-<body class="p-4 bg-light">
-    <div class="container">
-        <h2 class="mb-4 text-center fw-bold">لوحة تحكم المتجر</h2>
-
-        <div class="card p-4 mb-4 shadow-sm border-0">
-            <h5>إعدادات الموقع وسعر الصرف</h5>
-            <form action="/update-settings" method="POST">
-                <div class="row g-2">
-                    <div class="col-md-3"><label>سعر الدولار</label><input type="number" name="usdRate" class="form-control" value="<%= settings.usdRate %>"></div>
-                    <div class="col-md-3"><label>رابط الدعم</label><input type="text" name="supportLink" class="form-control" value="<%= settings.supportLink %>"></div>
-                    <div class="col-md-3"><label>رابط الوساطة</label><input type="text" name="mediationLink" class="form-control" value="<%= settings.mediationLink %>"></div>
-                    <div class="col-md-3"><label>بيع حسابك</label><input type="text" name="sellAccountLink" class="form-control" value="<%= settings.sellAccountLink %>"></div>
-                    <div class="col-md-12 mt-2"><label>الإعلان المتحرك</label><input type="text" name="announcement" class="form-control" value="<%= settings.announcement %>"></div>
-                    <button class="btn btn-success mt-3">حفظ الإعدادات</button>
-                </div>
-            </form>
+<div class="card p-4 mb-4 shadow-sm border-0">
+    <h5 class="fw-bold"><i class="fas fa-link"></i> إدارة الروابط</h5>
+    <form action="/update-settings" method="POST">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label>رابط الشراء المباشر (واتساب)</label>
+                <input type="text" name="buyNowLink" class="form-control" value="<%= settings.buyNowLink %>" placeholder="213555000000">
+            </div>
+            <div class="col-md-4">
+                <label>رابط قناة الوساطة</label>
+                <input type="text" name="mediationLink" class="form-control" value="<%= settings.mediationLink %>">
+            </div>
+            <div class="col-md-4">
+                <label>رابط دعم الموقع</label>
+                <input type="text" name="supportLink" class="form-control" value="<%= settings.supportLink %>">
+            </div>
+            <button class="btn btn-success fw-bold">حفظ الروابط المنفصلة</button>
         </div>
+    </form>
+</div>
 
-        <div class="card p-4 mb-4 shadow-sm border-0">
-            <h5>إضافة حساب جديد</h5>
-            <form action="/add-account" method="POST" enctype="multipart/form-data">
-                <div class="row g-2">
-                    <div class="col-md-6"><input type="text" name="title" class="form-control" placeholder="اسم الحساب" required></div>
-                    <div class="col-md-3"><input type="text" name="priceDZ" class="form-control" placeholder="السعر دج"></div>
-                    <div class="col-md-3"><input type="text" name="priceUSD" class="form-control" placeholder="السعر $"></div>
-                    <div class="col-md-6"><input type="text" name="coins" class="form-control" placeholder="الكوينز"></div>
-                    <div class="col-md-6"><input type="text" name="gems" class="form-control" placeholder="المجوهرات"></div>
-                    <div class="col-md-12"><input type="file" name="imageFiles" class="form-control" multiple required></div>
-                    <button class="btn btn-primary mt-3">نشر الحساب</button>
-                </div>
-            </form>
-        </div>
+<table class="table align-middle">
+    <% accounts.forEach(acc => { %>
+    <tr>
+        <td><img src="<%= acc.imgs[0] %>" width="50" class="rounded"></td>
+        <td><strong><%= acc.title %></strong></td>
+        <td>
+            <button class="btn btn-sm btn-outline-primary" onclick="openEditModal('<%= acc.id %>', '<%= acc.title %>', '<%= acc.priceDZ %>', '<%= acc.coins %>', '<%= acc.gems %>')">
+                <i class="fas fa-edit"></i> تعديل
+            </button>
+            <a href="/delete-account/<%= acc.id %>" class="btn btn-danger btn-sm" onclick="return confirm('حذف؟')">حذف</a>
+        </td>
+    </tr>
+    <% }) %>
+</table>
 
-        <div class="card p-4 shadow-sm border-0 mb-4">
-            <h5>الحسابات المنشورة</h5>
-            <table class="table">
-                <% accounts.forEach(acc => { %>
-                <tr>
-                    <td><img src="<%= acc.imgs[0] %>" width="50"></td>
-                    <td><%= acc.title %></td>
-                    <td><a href="/toggle-status/<%= acc.id %>" class="btn btn-sm <%= acc.status === 'متاح' ? 'btn-success' : 'btn-warning' %>"><%= acc.status %></a></td>
-                    <td><a href="/delete-account/<%= acc.id %>" class="btn btn-danger btn-sm">حذف</a></td>
-                </tr>
-                <% }) %>
-            </table>
-        </div>
+<div class="card p-4 shadow-sm border-0">
+    <h5>الأسئلة والأجوبة</h5>
+    <% faqs.forEach(f => { %>
+        <form action="/edit-faq/<%= f._id %>" method="POST" class="d-flex gap-2 mb-2">
+            <input type="text" name="question" class="form-control form-control-sm" value="<%= f.question %>">
+            <input type="text" name="answer" class="form-control form-control-sm" value="<%= f.answer %>">
+            <button class="btn btn-primary btn-sm">حفظ</button>
+            <a href="/delete-faq/<%= f._id %>" class="btn btn-danger btn-sm">X</a>
+        </form>
+    <% }) %>
+</div>
 
-        <div class="card p-4 shadow-sm border-0">
-            <h5>الأسئلة الشائعة</h5>
-            <form action="/add-faq" method="POST" class="mb-3">
-                <input type="text" name="question" class="form-control mb-2" placeholder="السؤال">
-                <textarea name="answer" class="form-control mb-2" placeholder="الجواب"></textarea>
-                <button class="btn btn-dark">إضافة سؤال</button>
-            </form>
-            <% faqs.forEach(f => { %>
-                <div class="d-flex justify-content-between border-bottom py-2">
-                    <span><%= f.question %></span>
-                    <a href="/delete-faq/<%= f._id %>" class="btn btn-danger btn-sm">حذف</a>
-                </div>
-            <% }) %>
-        </div>
-    </div>
-</body>
-</html>
+<div id="editModal" class="modal-custom" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; z-index:4000; border-radius:15px; box-shadow:0 0 20px rgba(0,0,0,0.2);">
+    <form id="editForm" method="POST">
+        <h6>تعديل بيانات الحساب</h6>
+        <input type="text" name="title" id="editTitle" class="form-control mb-2">
+        <input type="text" name="priceDZ" id="editPrice" class="form-control mb-2">
+        <input type="text" name="coins" id="editCoins" class="form-control mb-2">
+        <input type="text" name="gems" id="editGems" class="form-control mb-2">
+        <button class="btn btn-success w-100">تحديث البيانات</button>
+        <button type="button" class="btn btn-link w-100 text-muted" onclick="document.getElementById('editModal').style.display='none'">إلغاء</button>
+    </form>
+</div>
+
+<script>
+function openEditModal(id, title, price, coins, gems) {
+    document.getElementById('editForm').action = '/edit-account/' + id;
+    document.getElementById('editTitle').value = title;
+    document.getElementById('editPrice').value = price;
+    document.getElementById('editCoins').value = coins;
+    document.getElementById('editGems').value = gems;
+    document.getElementById('editModal').style.display = 'block';
+}
+</script>
